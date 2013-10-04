@@ -13,6 +13,11 @@ configuration you should drill down into lower level components of the
 
 ## Example Usage
 
+In the simplest case you simply call quickconnect with a single string
+argument to establish a namespace for your demo or application.  This string
+will then be combined with randomly generated location hash that will 
+determine the room for your application signalling.
+
 ```js
 var quickconnect = require('rtc-quickconnect');
 
@@ -23,6 +28,10 @@ quickconnect('test')
 ```
 
 ## Example Usage (Using Data Channels)
+
+By default, the `RTCPeerConnection` created by quickconnect will not be
+"data channels ready".  You can change that very simply, by flagging 
+`data` as `true` during quickconnect initialization:
 
 ```js
 var quickconnect = require('rtc-quickconnect');
