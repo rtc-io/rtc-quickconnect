@@ -50,6 +50,10 @@ var reTrailingSlash = /\/$/;
   quickconnect({ ns: 'test', signaller: 'http://mysignaller.com:3000' });
   ```
 
+  ## Full Reactive Stream Conference Example
+
+  <<< examples/conference.js
+
 **/
 module.exports = function(opts) {
   var hash = location.hash.slice(1);
@@ -135,6 +139,9 @@ module.exports = function(opts) {
         });
       }
     });
+
+    // pass on leave events
+    signaller.on('leave', emitter.emit.bind(emitter, 'leave'));
 
     // time to announce ourselves
     signaller.announce({ room: opts.ns + '#' + hash });
