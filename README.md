@@ -85,7 +85,29 @@ var peerVideos = {};
 // capture local media
 var media = rtc.media();
 
-function leave(id) {
+function handleConnect(conn, id) {
+  // save the peer
+  peers[id] = conn;
+
+  // hook up our local media
+  if (media.stream) {
+    conn.addStream(media.stream);
+  }
+  else {
+    media.once('capture', conn.addStream.bind(conn));
+  }
+
+  // add existing remote streams
+  conn.getRemoteStreams().forEach(renderRemote(id));
+
+  // listen for new streams
+  conn.addEventListener('addstream', function(evt) {
+    renderRemote(id)(evt.stream);
+  });
+}
+
+// handle the signaller telling us a peer is leaving
+function handleLeave(id) {
   // remove old streams
   (peerVideos[id] || []).forEach(function(el) {
     el.parentNode.removeChild(el);
@@ -98,6 +120,7 @@ function leave(id) {
   peers[id] = undefined;
 }
 
+// render a remote video
 function renderRemote(id) {
   // create the peer videos list
   peerVideos[id] = peerVideos[id] || [];
@@ -111,30 +134,8 @@ media.render(local);
 
 // handle the connection stuff
 quickconnect('test')
-  .on('peer', function(conn, id) {
-    console.log('got a new friend, id: ' + id, conn);
-
-    // save the peer
-    peers[id] = conn;
-
-    // hook up our local media
-    if (media.stream) {
-      conn.addStream(media.stream);
-    }
-    else {
-      media.once('capture', conn.addStream.bind(conn));
-    }
-
-    // add existing remote streams
-    conn.getRemoteStreams().forEach(renderRemote(id));
-
-    // listen for new streams
-    conn.addEventListener('addstream', function(evt) {
-      renderRemote(id)(evt.stream);
-    });
-  })
-  // handle the peer leaving
-  .on('leave', leave);
+  .on('peer', handleConnect)
+  .on('leave', handleLeave);
 
 /* extra code to handle dynamic html and css creation */
 
