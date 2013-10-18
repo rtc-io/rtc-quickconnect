@@ -78,7 +78,7 @@ module.exports = function(opts) {
   }
 
   // initialise the deafult opts
-  defaults(opts, {
+  opts = defaults(opts, {
     signaller: 'http://rtcjs.io:50000'
   });
 
