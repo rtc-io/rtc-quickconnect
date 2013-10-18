@@ -139,7 +139,7 @@ module.exports = function(opts) {
       // if not an answer, then announce back to the caller
       if (! data.answer) {
         signaller.to(data.id).announce({
-          room: opts.ns + '#' + hash,
+          room: (opts.ns || '') + '#' + hash,
           answer: true
         });
       }
