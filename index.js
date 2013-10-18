@@ -108,7 +108,12 @@ module.exports = function(opts) {
       var dc;
 
       // if this is a known peer then abort
-      if (peers[data.id]) {
+      if ((! data) || peers[data.id]) {
+        return;
+      }
+
+      // if the room is not a match, abort
+      if (data.room !== (opts.ns + '#' + hash)) {
         return;
       }
 
