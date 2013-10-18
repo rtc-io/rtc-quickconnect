@@ -116,7 +116,7 @@ module.exports = function(opts) {
       peer = peers[data.id] = rtc.createConnection(opts);
 
       // trigger the peer event
-      emitter.emit('peer', peer, data.id);
+      emitter.emit('peer', peer, data.id, data);
 
       // if we are working with data channels, create a data channel too
       if (opts.data && (! data.answer)) {
