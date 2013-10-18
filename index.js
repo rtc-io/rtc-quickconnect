@@ -149,7 +149,7 @@ module.exports = function(opts) {
     signaller.on('leave', emitter.emit.bind(emitter, 'leave'));
 
     // time to announce ourselves
-    signaller.announce({ room: opts.ns + '#' + hash });
+    signaller.announce({ room: (opts.ns || '') + '#' + hash });
   });
 
   return emitter;
