@@ -129,7 +129,7 @@ module.exports = function(opts) {
       }
 
       // couple the connections
-      rtc.couple(peer, { id: data.id }, signaller);
+      rtc.couple(peer, { id: data.id }, signaller, opts);
 
       // if not an answer, then announce back to the caller
       if (! data.answer) {
