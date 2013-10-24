@@ -19,7 +19,7 @@ var reTrailingSlash = /\/$/;
 
   In the simplest case you simply call quickconnect with a single string
   argument to establish a namespace for your demo or application.  This string
-  will then be combined with randomly generated location hash that will 
+  will then be combined with randomly generated location hash that will
   determine the room for your application signalling.
 
   <<< examples/simple.js
@@ -27,7 +27,7 @@ var reTrailingSlash = /\/$/;
   ## Example Usage (Using Data Channels)
 
   By default, the `RTCPeerConnection` created by quickconnect will not be
-  "data channels ready".  You can change that very simply, by flagging 
+  "data channels ready".  You can change that very simply, by flagging
   `data` as `true` during quickconnect initialization:
 
   <<< examples/datachannel.js
@@ -35,11 +35,11 @@ var reTrailingSlash = /\/$/;
   ## How it works?
 
   The `rtc-quickconnect` module makes use of our internal, publicly available
-  signaller which uses [socket.io](http://socket.io/) and our 
+  signaller which uses [socket.io](http://socket.io/) and our
   [signalling adapter](https://github.com/rtc-io/rtc-signaller-socket.io).
 
-  Our test signaller is exactly that, __something we use for testing__.  If 
-  you want to run your own signaller this is very simple and you should 
+  Our test signaller is exactly that, __something we use for testing__.  If
+  you want to run your own signaller this is very simple and you should
   consult the `rtc-signaller-socket.io` module for information on how to
   do this.  Once you have this running, simply provide quickconnect a
   signaller option when creating:
@@ -103,6 +103,9 @@ module.exports = function(opts) {
       openEvent: 'connect'
     });
 
+    // provide the signaller via an event so it can be used externally
+    emitter.emit('signaller', signaller);
+
     signaller.on('announce', function(data) {
       var peer;
       var dc;
@@ -114,6 +117,7 @@ module.exports = function(opts) {
 
       // create a peer
       peer = peers[data.id] = rtc.createConnection(opts);
+      console.log(peer.id);
 
       // trigger the peer event
       emitter.emit('peer', peer, data.id);
