@@ -78,7 +78,7 @@ module.exports = function(opts) {
   }
 
   // initialise the deafult opts
-  defaults(opts, {
+  opts = defaults(opts, {
     signaller: 'http://rtcjs.io:50000'
   });
 
@@ -111,7 +111,12 @@ module.exports = function(opts) {
       var dc;
 
       // if this is a known peer then abort
-      if (peers[data.id]) {
+      if ((! data) || peers[data.id]) {
+        return;
+      }
+
+      // if the room is not a match, abort
+      if (data.room !== (opts.ns + '#' + hash)) {
         return;
       }
 
@@ -120,7 +125,7 @@ module.exports = function(opts) {
       console.log(peer.id);
 
       // trigger the peer event
-      emitter.emit('peer', peer, data.id);
+      emitter.emit('peer', peer, data.id, data);
 
       // if we are working with data channels, create a data channel too
       if (opts.data && (! data.answer)) {
@@ -133,12 +138,12 @@ module.exports = function(opts) {
       }
 
       // couple the connections
-      rtc.couple(peer, { id: data.id }, signaller);
+      rtc.couple(peer, { id: data.id }, signaller, opts);
 
       // if not an answer, then announce back to the caller
       if (! data.answer) {
         signaller.to(data.id).announce({
-          room: opts.ns + '#' + hash,
+          room: (opts.ns || '') + '#' + hash,
           answer: true
         });
       }
@@ -148,7 +153,7 @@ module.exports = function(opts) {
     signaller.on('leave', emitter.emit.bind(emitter, 'leave'));
 
     // time to announce ourselves
-    signaller.announce({ room: opts.ns + '#' + hash });
+    signaller.announce({ room: (opts.ns || '') + '#' + hash });
   });
 
   return emitter;

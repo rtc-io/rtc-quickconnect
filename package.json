@@ -1,6 +1,6 @@
 {
   "name": "rtc-quickconnect",
-  "version": "0.1.2",
+  "version": "0.1.7",
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
   "dependencies": {
-    "rtc": "~0.5.1",
+    "rtc": "~0.5.4",
     "cog": "~0.3.1"
   },
   "devDependencies": {
