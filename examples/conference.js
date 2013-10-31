@@ -12,7 +12,7 @@ var peerVideos = {};
 // capture local media
 var media = rtc.media();
 
-function handleConnect(conn, id) {
+function handleConnect(conn, id, data, monitor) {
   // save the peer
   peers[id] = conn;
 

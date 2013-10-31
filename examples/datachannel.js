@@ -1,7 +1,7 @@
 var quickconnect = require('../');
 
 quickconnect({ ns: 'test', data: true, dtls: true })
-  .on('peer', function(connection, id) {
+  .on('peer', function(connection, id, data, monitor) {
     console.log('got a new friend: ' + id, connection);
   })
   .on('dc:open', function(dc, id) {

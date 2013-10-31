@@ -34,6 +34,9 @@ var reTrailingSlash = /\/$/;
 
   ## How it works?
 
+  __NOTE:__ Our public test signaller is currently unavailable, you will
+  need to run up a version of `rtc-switchboard` locally for the time being.
+
   The `rtc-quickconnect` module makes use of our internal, publicly available
   signaller which uses [socket.io](http://socket.io/) and our
   [signalling adapter](https://github.com/rtc-io/rtc-signaller-socket.io).
@@ -61,6 +64,7 @@ module.exports = function(opts) {
   var signaller;
   var logger;
   var peers = {};
+  var monitor;
 
   function channel(peerId, dc) {
     dc.addEventListener('open', function(evt) {
@@ -119,10 +123,6 @@ module.exports = function(opts) {
 
       // create a peer
       peer = peers[data.id] = rtc.createConnection(opts);
-      console.log(peer.id);
-
-      // trigger the peer event
-      emitter.emit('peer', peer, data.id, data);
 
       // if we are working with data channels, create a data channel too
       if (opts.data && (! data.answer)) {
@@ -135,7 +135,10 @@ module.exports = function(opts) {
       }
 
       // couple the connections
-      rtc.couple(peer, { id: data.id }, signaller, opts);
+      monitor = rtc.couple(peer, { id: data.id }, signaller, opts);
+
+      // trigger the peer event
+      emitter.emit('peer', peer, data.id, data, monitor);
 
       // if not an answer, then announce back to the caller
       if (! data.answer) {
