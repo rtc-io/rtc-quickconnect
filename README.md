@@ -22,7 +22,7 @@ determine the room for your application signalling.
 var quickconnect = require('rtc-quickconnect');
 
 quickconnect('test')
-  .on('peer', function(conn, id) {
+  .on('peer', function(conn, id, data, monitor) {
     console.log('got a new friend, id: ' + id, conn);
   });
 ```
@@ -37,7 +37,7 @@ By default, the `RTCPeerConnection` created by quickconnect will not be
 var quickconnect = require('rtc-quickconnect');
 
 quickconnect({ ns: 'test', data: true, dtls: true })
-  .on('peer', function(connection, id) {
+  .on('peer', function(connection, id, data, monitor) {
     console.log('got a new friend: ' + id, connection);
   })
   .on('dc:open', function(dc, id) {
@@ -51,6 +51,9 @@ quickconnect({ ns: 'test', data: true, dtls: true })
 ```
 
 ## How it works?
+
+__NOTE:__ Our public test signaller is currently unavailable, you will
+need to run up a version of `rtc-switchboard` locally for the time being.
 
 The `rtc-quickconnect` module makes use of our internal, publicly available
 signaller which uses [socket.io](http://socket.io/) and our
@@ -85,7 +88,7 @@ var peerVideos = {};
 // capture local media
 var media = rtc.media();
 
-function handleConnect(conn, id) {
+function handleConnect(conn, id, data, monitor) {
   // save the peer
   peers[id] = conn;
 
