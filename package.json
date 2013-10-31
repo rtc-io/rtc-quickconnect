@@ -21,10 +21,10 @@
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
   "dependencies": {
-    "rtc": "~0.5.4",
+    "rtc": "~0.6.0",
     "cog": "~0.3.1"
   },
   "devDependencies": {
-    "crel": "~1.0.0"
+    "crel": "~1.1.0"
   }
 }

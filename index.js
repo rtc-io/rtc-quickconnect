@@ -79,7 +79,7 @@ module.exports = function(opts) {
 
   // initialise the deafult opts
   opts = defaults(opts, {
-    signaller: 'http://rtcjs.io:50000'
+    signaller: 'http://localhost:3000'
   });
 
   // create our logger
@@ -96,12 +96,9 @@ module.exports = function(opts) {
   }
 
   // load socket.io script
-  loadSocketIO(opts.signaller, function() {
+  loadPrimus(opts.signaller, function() {
     // create our signaller
-    signaller = rtc.signaller(io.connect(opts.signaller), {
-      dataEvent: 'message',
-      openEvent: 'connect'
-    });
+    signaller = rtc.signaller(Primus.connect(opts.signaller));
 
     // provide the signaller via an event so it can be used externally
     emitter.emit('signaller', signaller);
@@ -159,9 +156,9 @@ module.exports = function(opts) {
   return emitter;
 };
 
-function loadSocketIO(url, callback) {
+function loadPrimus(url, callback) {
   var script = document.createElement('script');
-  script.src = url.replace(reTrailingSlash, '') + '/socket.io/socket.io.js';
+  script.src = url.replace(reTrailingSlash, '') + '/rtc.io/primus.js';
   script.addEventListener('load', callback);
   document.body.appendChild(script);
 };
