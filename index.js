@@ -38,8 +38,8 @@ var reTrailingSlash = /\/$/;
   need to run up a version of `rtc-switchboard` locally for the time being.
 
   The `rtc-quickconnect` module makes use of our internal, publicly available
-  signaller which uses [socket.io](http://socket.io/) and our
-  [signalling adapter](https://github.com/rtc-io/rtc-signaller-socket.io).
+  signaller which uses [primus](https://github.com/primus/primus) and our
+  [signalling adapter](https://github.com/rtc-io/rtc-switchboard).
 
   Our test signaller is exactly that, __something we use for testing__.  If
   you want to run your own signaller this is very simple and you should
@@ -83,7 +83,7 @@ module.exports = function(opts) {
 
   // initialise the deafult opts
   opts = defaults(opts, {
-    signaller: 'http://localhost:3000'
+    signaller: 'http://webrtc.research.nicta.com.au:50000'
   });
 
   // create our logger
