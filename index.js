@@ -83,7 +83,7 @@ module.exports = function(opts) {
 
   // initialise the deafult opts
   opts = defaults(opts, {
-    signaller: 'http://webrtc.research.nicta.com.au:50000'
+    signaller: 'http://localhost:3000'
   });
 
   // create our logger
