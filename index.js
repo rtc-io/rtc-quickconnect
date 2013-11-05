@@ -1,10 +1,14 @@
 /* jshint node: true */
+/* global document, location, Primus */
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc');
 var defaults = require('cog/defaults');
+var util = require('util');
 var reTrailingSlash = /\/$/;
+
+module.exports = QuickConnect;
 
 /**
   # rtc-quickconnect
@@ -58,110 +62,126 @@ var reTrailingSlash = /\/$/;
   <<< examples/conference.js
 
 **/
-module.exports = function(opts) {
-  var hash = location.hash.slice(1);
-  var emitter = new EventEmitter();
-  var signaller;
-  var logger;
-  var peers = {};
-  var monitor;
 
-  function channel(peerId, dc) {
-    dc.addEventListener('open', function(evt) {
-      emitter.emit('dc:open', dc, peerId);
-    });
+// QuickConnect inherits from EventEmitter
+util.inherits(QuickConnect, EventEmitter);
 
-
-  }
+function QuickConnect(opts) {
+  // force instantiation via 'new' keyword
+  if (!(this instanceof QuickConnect)) return new QuickConnect(opts);
 
   // if the opts is a string, then we only have a namespace
   if (typeof opts == 'string' || (opts instanceof String)) {
-    opts = {
-      ns: opts
-    };
+    opts = { ns: opts };
   }
 
-  // initialise the deafult opts
+  // back opts with defaults
   opts = defaults(opts, {
-    signaller: 'http://localhost:3000'
+    signaller: 'http://localhost:3000',
+    setHashLocation: true,
+    hash: location.hash.slice(1) || generateHash(),
+    ns: '',
   });
 
+  // configure self
+  var self = this;
+  self.opts = opts;
+  self.peers = {};
+  self.hash = opts.hash;
+  self.ns = opts.ns;
+
   // create our logger
-  logger = rtc.logger(opts.ns);
+  rtc.logger(opts.ns);
 
   // if debug is enabled, then let's get some noisy logging going
   if (opts.debug) {
     rtc.logger.enable('*');
   }
 
-  // if the hash is not assigned, then create a random hash value
-  if (! hash) {
-    hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
+  // if setHashLocation is enabled, set the url hash location
+  if (opts.setHashLocation) {
+    location.hash = self.hash;
   }
 
-  // load socket.io script
-  loadPrimus(opts.signaller, function() {
-    // create our signaller
-    signaller = rtc.signaller(Primus.connect(opts.signaller));
+  // load Primus.js client script
+  loadPrimus(opts.signaller, self.onPrimusReady.bind(self));
+}
 
-    // provide the signaller via an event so it can be used externally
-    emitter.emit('signaller', signaller);
+QuickConnect.prototype.onPrimusReady = function onPrimusReady() {
+  var self = this;
 
-    signaller.on('announce', function(data) {
-      var peer;
-      var dc;
+  // construct room name
+  var roomName = self.ns + '#' + self.hash;
 
-      // if this is a known peer then abort
-      if ((! data) || peers[data.id]) {
-        return;
-      }
+  // create our signaller
+  var signaller = rtc.signaller(Primus.connect(self.opts.signaller));
 
-      // if the room is not a match, abort
-      if (data.room !== (opts.ns + '#' + hash)) {
-        return;
-      }
+  // provide the signaller via an event so it can be used externally
+  self.emit('signaller', signaller);
 
-      // create a peer
-      peer = peers[data.id] = rtc.createConnection(opts);
+  signaller.on('announce', function(data) {
+    // if there is no data, about
+    if (! data) return;
+    // if this is a known peer, abort
+    if (self.peers[data.id]) return;
+    // if the room is not a match, abort
+    if (data.room !== roomName) return;
 
-      // if we are working with data channels, create a data channel too
-      if (opts.data && (! data.answer)) {
-        channel(data.id, peer.createDataChannel('tx', { reliable: false }));
-      }
-      else if (opts.data) {
+    // create a peer
+    var peer = self.peers[data.id] = rtc.createConnection(self.opts);
+
+    // if we are working with data channels, create a data channel too
+    if (self.opts.data) {
+      if (data.answer) {
         peer.addEventListener('datachannel', function(evt) {
-          channel(data.id, evt.channel);
+          self.bindToDataChannel(data.id, evt.channel);
         });
+      } else {
+        self.bindToDataChannel(data.id, peer.createDataChannel('tx', { reliable: false }));
       }
+    }
 
-      // couple the connections
-      monitor = rtc.couple(peer, { id: data.id }, signaller, opts);
+    // couple the connections
+    var monitor = rtc.couple(peer, { id: data.id }, signaller, self.opts);
 
-      // trigger the peer event
-      emitter.emit('peer', peer, data.id, data, monitor);
+    // trigger the peer event
+    self.emit('peer', peer, data.id, data, monitor);
 
-      // if not an answer, then announce back to the caller
-      if (! data.answer) {
-        signaller.to(data.id).announce({
-          room: (opts.ns || '') + '#' + hash,
-          answer: true
-        });
-      }
-    });
-
-    // pass on leave events
-    signaller.on('leave', emitter.emit.bind(emitter, 'leave'));
-
-    // time to announce ourselves
-    signaller.announce({ room: (opts.ns || '') + '#' + hash });
+    // if not an answer, then announce back to the caller
+    if (! data.answer) {
+      signaller.to(data.id).announce({
+        room: roomName,
+        answer: true,
+      });
+    }
   });
 
-  return emitter;
+  // pass on leave events
+  signaller.on('leave', self.emit.bind(self, 'leave'));
+
+  // time to announce ourselves
+  signaller.announce({ room: roomName });
 };
 
+QuickConnect.prototype.bindToDataChannel = function bindToDataChannel(peerId, dc) {
+  var self = this;
+
+  // wait for channel to open, and then announce it
+  dc.addEventListener('open', function(evt) {
+    self.emit('dc:open', dc, peerId);
+  });
+};
+
+
+// create a random hash
+function generateHash() {
+  return String(Math.pow(2, 53) * Math.random());
+}
+
+// Load appropriate Primus client from remote server
 function loadPrimus(url, callback) {
   var script = document.createElement('script');
   script.src = url.replace(reTrailingSlash, '') + '/rtc.io/primus.js';
   script.addEventListener('load', callback);
   document.body.appendChild(script);
-};
+}
