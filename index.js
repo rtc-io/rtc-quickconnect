@@ -3,6 +3,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc');
+var createSignaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var reTrailingSlash = /\/$/;
 
@@ -83,7 +84,7 @@ module.exports = function(opts) {
 
   // initialise the deafult opts
   opts = defaults(opts, {
-    signaller: 'http://localhost:3000'
+    signaller: location.origin || 'http://localhost:3000'
   });
 
   // create our logger
@@ -102,7 +103,7 @@ module.exports = function(opts) {
   // load socket.io script
   loadPrimus(opts.signaller, function() {
     // create our signaller
-    signaller = rtc.signaller(Primus.connect(opts.signaller));
+    signaller = createSignaller(Primus.connect(opts.signaller));
 
     // provide the signaller via an event so it can be used externally
     emitter.emit('signaller', signaller);
