@@ -1,6 +1,12 @@
 var quickconnect = require('../');
+var opts = {
+  ns: 'dctest',
+  data: true,
+  dtls: true,
+  signaller: 'http://sig.rtc.io:50000'
+};
 
-quickconnect({ ns: 'test', data: true, dtls: true })
+quickconnect(opts)
   .on('peer', function(connection, id, data, monitor) {
     console.log('got a new friend: ' + id, connection);
   })

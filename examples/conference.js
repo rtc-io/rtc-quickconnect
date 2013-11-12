@@ -10,18 +10,19 @@ var peers = {};
 var peerVideos = {};
 
 // capture local media
-var media = rtc.media();
+var media = require('rtc-media');
+var localMedia = media();
 
 function handleConnect(conn, id, data, monitor) {
   // save the peer
   peers[id] = conn;
 
   // hook up our local media
-  if (media.stream) {
-    conn.addStream(media.stream);
+  if (localMedia.stream) {
+    conn.addStream(localMedia.stream);
   }
   else {
-    media.once('capture', conn.addStream.bind(conn));
+    localMedia.once('capture', conn.addStream.bind(conn));
   }
 
   // add existing remote streams
@@ -53,14 +54,14 @@ function renderRemote(id) {
   peerVideos[id] = peerVideos[id] || [];
 
   return function(stream) {
-    peerVideos[id] = peerVideos[id].concat(rtc.media(stream).render(remote));
+    peerVideos[id] = peerVideos[id].concat(media(stream).render(remote));
   }
 }
 // render to local
-media.render(local);
+localMedia.render(local);
 
 // handle the connection stuff
-quickconnect('test')
+quickconnect({ ns: 'conftest', signaller: 'http://sig.rtc.io:50000/' })
   .on('peer', handleConnect)
   .on('leave', handleLeave);
 
