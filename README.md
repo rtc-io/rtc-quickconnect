@@ -21,7 +21,7 @@ determine the room for your application signalling.
 ```js
 var quickconnect = require('rtc-quickconnect');
 
-quickconnect({ ns: 'test', signaller: 'http://sig.rtc.io:50000' })
+quickconnect({ ns: 'test', signalhost: 'http://sig.rtc.io:50000' })
   .on('peer', function(conn, id, data, monitor) {
     console.log('got a new friend, id: ' + id, conn);
   });
@@ -38,8 +38,7 @@ var quickconnect = require('rtc-quickconnect');
 var opts = {
   ns: 'dctest',
   data: true,
-  dtls: true,
-  signaller: 'http://sig.rtc.io:50000'
+  signalhost: 'http://sig.rtc.io:50000'
 };
 
 quickconnect(opts)
@@ -143,7 +142,7 @@ function renderRemote(id) {
 localMedia.render(local);
 
 // handle the connection stuff
-quickconnect({ ns: 'conftest', signaller: 'http://sig.rtc.io:50000/' })
+quickconnect({ ns: 'conftest', signalhost: 'http://sig.rtc.io:50000/' })
   .on('peer', handleConnect)
   .on('leave', handleLeave);
 
