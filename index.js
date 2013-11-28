@@ -3,7 +3,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc');
-var createSignaller = require('rtc-signaller');
+var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var reTrailingSlash = /\/$/;
 
@@ -62,17 +62,12 @@ var reTrailingSlash = /\/$/;
 module.exports = function(opts) {
   var hash = location.hash.slice(1);
   var emitter = new EventEmitter();
-  var signaller;
   var logger;
   var peers = {};
   var monitor;
 
   function channel(peerId, dc) {
-    dc.addEventListener('open', function(evt) {
-      emitter.emit('dc:open', dc, peerId);
-    });
-
-
+    dc.onopen = emitter.emit.bind(emitter, 'dc:open', dc, peerId);
   }
 
   // if the opts is a string, then we only have a namespace
@@ -84,7 +79,9 @@ module.exports = function(opts) {
 
   // initialise the deafult opts
   opts = defaults(opts, {
-    signaller: location.origin || 'http://localhost:3000'
+    signalhost: location.origin || 'http://localhost:3000',
+    signaller: location.origin || 'http://localhost:3000',
+    maxAttempts: 1
   });
 
   // create our logger
@@ -101,16 +98,16 @@ module.exports = function(opts) {
   }
 
   // load socket.io script
-  loadPrimus(opts.signaller, function() {
+  signaller.loadPrimus(opts.signalhost, function() {
+    var socket = Primus.connect(opts.signalhost || opts.signaller);
+
     // create our signaller
-    signaller = createSignaller(Primus.connect(opts.signaller));
+    var sig = signaller(socket);
 
-    // provide the signaller via an event so it can be used externally
-    emitter.emit('signaller', signaller);
-
-    signaller.on('announce', function(data) {
+    sig.on('announce', function(data) {
       var peer;
       var dc;
+      var dcOpts = { reliable: false };
 
       // if this is a known peer then abort
       if ((! data) || peers[data.id]) {
@@ -127,23 +124,23 @@ module.exports = function(opts) {
 
       // if we are working with data channels, create a data channel too
       if (opts.data && (! data.answer)) {
-        channel(data.id, peer.createDataChannel('tx', { reliable: false }));
+        channel(data.id, peer.createDataChannel('tx', dcOpts));
       }
       else if (opts.data) {
-        peer.addEventListener('datachannel', function(evt) {
+        peer.ondatachannel = function(evt) {
           channel(data.id, evt.channel);
-        });
+        };
       }
 
       // couple the connections
-      monitor = rtc.couple(peer, { id: data.id }, signaller, opts);
+      monitor = rtc.couple(peer, { id: data.id }, sig, opts);
 
       // trigger the peer event
       emitter.emit('peer', peer, data.id, data, monitor);
 
       // if not an answer, then announce back to the caller
       if (! data.answer) {
-        signaller.to(data.id).announce({
+        sig.to(data.id).announce({
           room: (opts.ns || '') + '#' + hash,
           answer: true
         });
@@ -151,18 +148,17 @@ module.exports = function(opts) {
     });
 
     // pass on leave events
-    signaller.on('leave', emitter.emit.bind(emitter, 'leave'));
+    sig.on('leave', emitter.emit.bind(emitter, 'leave'));
 
-    // time to announce ourselves
-    signaller.announce({ room: (opts.ns || '') + '#' + hash });
+    socket.on('open', function() {
+      // provide the signaller via an event so it can be used externally
+      emitter.emit('signaller', sig);
+
+      // announce ourselves to our new friend
+      sig.announce({ room: (opts.ns || '') + '#' + hash });
+    });
+
   });
 
   return emitter;
-};
-
-function loadPrimus(url, callback) {
-  var script = document.createElement('script');
-  script.src = url.replace(reTrailingSlash, '') + '/rtc.io/primus.js';
-  script.addEventListener('load', callback);
-  document.body.appendChild(script);
 };
