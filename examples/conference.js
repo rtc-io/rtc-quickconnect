@@ -1,6 +1,5 @@
 var quickconnect = require('../');
 var crel = require('crel');
-var rtc = require('rtc');
 
 // create containers for our local and remote video
 var local = crel('div', { class: 'local' });
