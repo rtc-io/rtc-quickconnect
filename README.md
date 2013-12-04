@@ -76,12 +76,65 @@ var quickconnect = require('rtc-quickconnect');
 quickconnect({ ns: 'test', signaller: 'http://mysignaller.com:3000' });
 ```
 
-## Full Reactive Stream Conference Example
+## Reference
+
+```
+quickconnect(opts?) => EventEmitter
+```
+
+The `rtc-quickconnect` module exports a single function that is used to
+create a node [EventEmitter](http://nodejs.org/api/events.html) and
+start the signalling process required to establish WebRTC peer connections.
+
+### Valid Quick Connect Options
+
+The options provided to the `rtc-quickconnect` module function influence the
+behaviour of some of the underlying components used from the rtc.io suite.
+
+Listed below are some of the commonly used options:
+
+- `signalhost`: The host that will be used to coordinate signalling between
+  peers.  This defaults to `http://localhost:3000` but during testing feel
+  free to use our test signalling server (`http://sig.rtc.io:50000`).
+
+- `ns`: An optional namespace for your signalling room.  While quickconnect
+  will generate a unique hash for the room, this can be made to be more
+  unique by providing a namespace.  Using a namespace means two demos
+  that have generated the same hash but use a different namespace will be
+  in different rooms.
+
+- `room` (added 0.6): Rather than use the internal hash generation
+  (plus optional namespace) for room name generation, simply use this room
+  name instead.  __NOTE:__ Use of the `room` option takes precendence over
+  `ns`.
+
+- `debug`: Write rtc.io suite debug output to the browser console.
+
+#### Options for Peer Connection Creation
+
+Options that are passed onto the
+[rtc.createConnection](https://github.com/rtc-io/rtc#createconnectionopts-constraints)
+function:
+
+- `data`: Provide `{ data: true }` if you want to enable data channels on
+  the peer connection.
+
+- `constraints`: Used to provide specific constraints when creating a new
+  peer connection.
+
+#### Options for P2P negotiation
+
+Under the hood, quickconnect uses the
+[rtc/couple](https://github.com/rtc-io/rtc#rtccouple) logic, and the options
+passed to quickconnect are also passed onto this function.
+
+## Additional examples
+
+### Full Reactive Stream Conference Example
 
 ```js
 var quickconnect = require('rtc-quickconnect');
 var crel = require('crel');
-var rtc = require('rtc');
 
 // create containers for our local and remote video
 var local = crel('div', { class: 'local' });
