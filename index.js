@@ -86,6 +86,26 @@ var reTrailingSlash = /\/$/;
     name instead.  __NOTE:__ Use of the `room` option takes precendence over
     `ns`.
 
+  - `debug`: Write rtc.io suite debug output to the browser console.
+
+  #### Options for Peer Connection Creation
+
+  Options that are passed onto the
+  [rtc.createConnection](https://github.com/rtc-io/rtc#createconnectionopts-constraints)
+  function:
+
+  - `data`: Provide `{ data: true }` if you want to enable data channels on
+    the peer connection.
+
+  - `constraints`: Used to provide specific constraints when creating a new
+    peer connection.
+
+  #### Options for P2P negotiation
+
+  Under the hood, quickconnect uses the
+  [rtc/couple](https://github.com/rtc-io/rtc#rtccouple) logic, and the options
+  passed to quickconnect are also passed onto this function.
+
 **/
 module.exports = function(opts) {
   var hash = location.hash.slice(1);
@@ -154,7 +174,7 @@ module.exports = function(opts) {
       }
 
       // create a peer
-      peer = peers[data.id] = rtc.createConnection(opts);
+      peer = peers[data.id] = rtc.createConnection(opts, opts.constraints);
 
       // if we are working with data channels, create a data channel too
       if (opts.data && (! data.answer)) {
