@@ -54,9 +54,37 @@ var reTrailingSlash = /\/$/;
   quickconnect({ ns: 'test', signaller: 'http://mysignaller.com:3000' });
   ```
 
-  ## Full Reactive Stream Conference Example
+  ## Reference
 
-  <<< examples/conference.js
+  ```
+  quickconnect(opts?) => EventEmitter
+  ```
+
+  The `rtc-quickconnect` module exports a single function that is used to
+  create a node [EventEmitter](http://nodejs.org/api/events.html) and
+  start the signalling process required to establish WebRTC peer connections.
+
+  ### Valid Quick Connect Options
+
+  The options provided to the `rtc-quickconnect` module function influence the
+  behaviour of some of the underlying components used from the rtc.io suite.
+
+  Listed below are some of the commonly used options:
+
+  - `signalhost`: The host that will be used to coordinate signalling between
+    peers.  This defaults to `http://localhost:3000` but during testing feel
+    free to use our test signalling server (`http://sig.rtc.io:50000`).
+
+  - `ns`: An optional namespace for your signalling room.  While quickconnect
+    will generate a unique hash for the room, this can be made to be more
+    unique by providing a namespace.  Using a namespace means two demos
+    that have generated the same hash but use a different namespace will be
+    in different rooms.
+
+  - `room` (added 0.6): Rather than use the internal hash generation
+    (plus optional namespace) for room name generation, simply use this room
+    name instead.  __NOTE:__ Use of the `room` option takes precendence over
+    `ns`.
 
 **/
 module.exports = function(opts) {
@@ -78,7 +106,7 @@ module.exports = function(opts) {
   }
 
   // initialise the deafult opts
-  opts = defaults(opts, {
+  opts = defaults({}, opts, {
     signalhost: location.origin || 'http://localhost:3000',
     signaller: location.origin || 'http://localhost:3000',
     maxAttempts: 1
@@ -92,9 +120,15 @@ module.exports = function(opts) {
     rtc.logger.enable('*');
   }
 
-  // if the hash is not assigned, then create a random hash value
-  if (! hash) {
-    hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
+  // if we haven't been provided an explicit room name generate it now
+  if (! opts.room) {
+    // if the hash is not assigned, then create a random hash value
+    if (! hash) {
+      hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
+    }
+
+    // generate the room name
+    opts.room = (opts.ns || '') + '#' + hash;
   }
 
   // load socket.io script
@@ -115,7 +149,7 @@ module.exports = function(opts) {
       }
 
       // if the room is not a match, abort
-      if (data.room !== (opts.ns + '#' + hash)) {
+      if (data.room !== opts.room) {
         return;
       }
 
@@ -141,7 +175,7 @@ module.exports = function(opts) {
       // if not an answer, then announce back to the caller
       if (! data.answer) {
         sig.to(data.id).announce({
-          room: (opts.ns || '') + '#' + hash,
+          room: opts.room,
           answer: true
         });
       }
@@ -155,10 +189,18 @@ module.exports = function(opts) {
       emitter.emit('signaller', sig);
 
       // announce ourselves to our new friend
-      sig.announce({ room: (opts.ns || '') + '#' + hash });
+      sig.announce({ room: opts.room });
     });
 
   });
 
   return emitter;
 };
+
+/**
+  ## Additional examples
+
+  ### Full Reactive Stream Conference Example
+
+  <<< examples/conference.js
+**/
