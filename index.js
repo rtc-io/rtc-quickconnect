@@ -188,11 +188,6 @@ module.exports = function(opts) {
       // create a peer
       peer = peers[data.id] = rtc.createConnection(opts, opts.constraints);
 
-      console.log(srcState);
-      if (srcState.roleIdx === 1) {
-        rtc.logger.enable('*');
-      }
-
       // couple the connections
       monitor = rtc.couple(peer, data.id, sig, opts);
 
