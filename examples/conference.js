@@ -60,7 +60,7 @@ function renderRemote(id) {
 localMedia.render(local);
 
 // handle the connection stuff
-quickconnect({ ns: 'conftest', signalhost: 'http://sig.rtc.io:50000/' })
+quickconnect({ data: true, ns: 'conftest', signalhost: 'http://sig.rtc.io:50000/' })
   .on('peer', handleConnect)
   .on('leave', handleLeave);
 

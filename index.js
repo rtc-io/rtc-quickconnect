@@ -122,7 +122,7 @@ var reTrailingSlash = /\/$/;
 module.exports = function(opts) {
   var hash = location.hash.slice(1);
   var emitter = new EventEmitter();
-  var logger;
+  var debug;
   var peers = {};
   var monitor;
 
@@ -145,7 +145,7 @@ module.exports = function(opts) {
   });
 
   // create our logger
-  logger = rtc.logger(opts.ns);
+  debug = rtc.logger('rtc-quickconnect:' + (opts.ns || ''));
 
   // if debug is enabled, then let's get some noisy logging going
   if (opts.debug) {
@@ -170,7 +170,7 @@ module.exports = function(opts) {
     // create our signaller
     var sig = signaller(socket);
 
-    sig.on('announce', function(data) {
+    sig.on('peer:announce', function(data, srcState) {
       var peer;
       var dc;
       var dcOpts = { reliable: false };
@@ -188,8 +188,16 @@ module.exports = function(opts) {
       // create a peer
       peer = peers[data.id] = rtc.createConnection(opts, opts.constraints);
 
+      console.log(srcState);
+      if (srcState.roleIdx === 1) {
+        rtc.logger.enable('*');
+      }
+
+      // couple the connections
+      monitor = rtc.couple(peer, data.id, sig, opts);
+
       // if we are working with data channels, create a data channel too
-      if (opts.data && (! data.answer)) {
+      if (opts.data && srcState.roleIdx === 0) {
         channel(data.id, peer.createDataChannel('tx', dcOpts));
       }
       else if (opts.data) {
@@ -198,23 +206,12 @@ module.exports = function(opts) {
         };
       }
 
-      // couple the connections
-      monitor = rtc.couple(peer, { id: data.id }, sig, opts);
-
       // trigger the peer event
       emitter.emit('peer', peer, data.id, data, monitor);
-
-      // if not an answer, then announce back to the caller
-      if (! data.answer) {
-        sig.to(data.id).announce({
-          room: opts.room,
-          answer: true
-        });
-      }
     });
 
     // pass on leave events
-    sig.on('leave', emitter.emit.bind(emitter, 'leave'));
+    sig.on('peer:leave', emitter.emit.bind(emitter, 'leave'));
 
     socket.on('open', function() {
       // provide the signaller via an event so it can be used externally
