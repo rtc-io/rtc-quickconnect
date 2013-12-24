@@ -2,7 +2,7 @@ var quickconnect = require('../');
 var opts = {
   ns: 'dctest',
   data: true,
-  signalhost: 'http://sig.rtc.io:50000'
+  signalhost: 'http://rtc.io/switchboard/'
 };
 
 quickconnect(opts)

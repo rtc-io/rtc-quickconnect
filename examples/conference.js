@@ -7,10 +7,16 @@ var remote = crel('div', { class: 'remote' });
 
 var peers = {};
 var peerVideos = {};
+var opts = {
+  data: true,
+  ns: 'conftest',
+  signalhost: 'http://rtc.io/switchboard/'
+};
 
 // capture local media
 var media = require('rtc-media');
 var localMedia = media();
+
 
 function handleConnect(conn, id, data, monitor) {
   // save the peer
@@ -60,7 +66,7 @@ function renderRemote(id) {
 localMedia.render(local);
 
 // handle the connection stuff
-quickconnect({ data: true, ns: 'conftest', signalhost: 'http://sig.rtc.io:50000/' })
+quickconnect(opts)
   .on('peer', handleConnect)
   .on('leave', handleLeave);
 
