@@ -3,6 +3,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc');
+var debug = rtc.logger('rtc-quickconnect');
 var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var reTrailingSlash = /\/$/;
@@ -122,7 +123,6 @@ var reTrailingSlash = /\/$/;
 module.exports = function(opts) {
   var hash = location.hash.slice(1);
   var emitter = new EventEmitter();
-  var debug;
   var peers = {};
   var monitor;
 
@@ -143,9 +143,6 @@ module.exports = function(opts) {
     signaller: location.origin || 'http://localhost:3000',
     maxAttempts: 1
   });
-
-  // create our logger
-  debug = rtc.logger('rtc-quickconnect:' + (opts.ns || ''));
 
   // if debug is enabled, then let's get some noisy logging going
   if (opts.debug) {
@@ -173,7 +170,7 @@ module.exports = function(opts) {
     sig.on('peer:announce', function(data, srcState) {
       var peer;
       var dc;
-      var dcOpts = { reliable: false };
+      // var dcOpts = { reliable: false };
 
       // if this is a known peer then abort
       if ((! data) || peers[data.id]) {
@@ -188,18 +185,20 @@ module.exports = function(opts) {
       // create a peer
       peer = peers[data.id] = rtc.createConnection(opts, opts.constraints);
 
-      // couple the connections
-      monitor = rtc.couple(peer, data.id, sig, opts);
-
       // if we are working with data channels, create a data channel too
-      if (opts.data && srcState.roleIdx === 0) {
-        channel(data.id, peer.createDataChannel('tx', dcOpts));
+      if (opts.data && sig.isMaster(data.id)) {
+        debug('creating data channel');
+        channel(data.id, peer.createDataChannel('qc-data'));
       }
       else if (opts.data) {
         peer.ondatachannel = function(evt) {
+          debug('received remote data channel notification');
           channel(data.id, evt.channel);
         };
       }
+
+      // couple the connections
+      monitor = rtc.couple(peer, data.id, sig, opts);
 
       // trigger the peer event
       emitter.emit('peer', peer, data.id, data, monitor);
