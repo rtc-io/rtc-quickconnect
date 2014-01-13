@@ -69,12 +69,8 @@ var reTrailingSlash = /\/$/;
   ## Reference
 
   ```
-  quickconnect(opts?) => EventEmitter
+  quickconnect(signalhost, opts?) => rtc-sigaller instance (+ helpers)
   ```
-
-  The `rtc-quickconnect` module exports a single function that is used to
-  create a node [EventEmitter](http://nodejs.org/api/events.html) and
-  start the signalling process required to establish WebRTC peer connections.
 
   ### Valid Quick Connect Options
 
@@ -82,12 +78,6 @@ var reTrailingSlash = /\/$/;
   behaviour of some of the underlying components used from the rtc.io suite.
 
   Listed below are some of the commonly used options:
-
-  - `signalhost` (default: 'http://localhost:3000')
-
-    The host that will be used to coordinate signalling between
-    peers.  This defaults to `http://localhost:3000` but during testing feel
-    free to use our test signalling server (`http://sig.rtc.io:50000`).
 
   - `ns` (default: '')
 
@@ -113,11 +103,6 @@ var reTrailingSlash = /\/$/;
   Options that are passed onto the
   [rtc.createConnection](https://github.com/rtc-io/rtc#createconnectionopts-constraints)
   function:
-
-  - `data` (default: false)
-
-    Provide `{ data: true }` if you want to enable data channels on
-    the peer connection.
 
   - `constraints`
 
