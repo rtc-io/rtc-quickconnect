@@ -2,7 +2,7 @@ var quickconnect = require('../');
 
 quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
   // tell quickconnect we want a datachannel called test
-  .addChannel('test')
+  .createDataChannel('test')
   // when the test channel is open, let us know
   .on('test:open', function(dc, id) {
     dc.onmessage = function(evt) {
