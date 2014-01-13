@@ -1,19 +1,14 @@
 var quickconnect = require('../');
-var opts = {
-  ns: 'dctest',
-  data: true,
-  signalhost: 'http://rtc.io/switchboard/'
-};
 
-quickconnect(opts)
-  .on('peer', function(connection, id, data, monitor) {
-    console.log('got a new friend: ' + id, connection);
-  })
-  .on('dc:open', function(dc, id) {
-    dc.addEventListener('message', function(evt) {
+quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+  // tell quickconnect we want a datachannel called test
+  .addChannel('test')
+  // when the test channel is open, let us know
+  .on('test:open', function(dc, id) {
+    dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
-    });
+    };
 
-    console.log('dc open for peer: ' + id);
+    console.log('test dc open for peer: ' + id);
     dc.send('hi');
   });

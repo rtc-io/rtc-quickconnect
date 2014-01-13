@@ -4,71 +4,35 @@ var crel = require('crel');
 // create containers for our local and remote video
 var local = crel('div', { class: 'local' });
 var remote = crel('div', { class: 'remote' });
+var peerMedia = {};
 
-var peers = {};
-var peerVideos = {};
-var opts = {
-  data: true,
-  ns: 'conftest',
-  signalhost: 'http://rtc.io/switchboard/'
-};
-
-// capture local media
-var media = require('rtc-media');
-var localMedia = media();
-
-
-function handleConnect(conn, id, data, monitor) {
-  // save the peer
-  peers[id] = conn;
-
-  // hook up our local media
-  if (localMedia.stream) {
-    conn.addStream(localMedia.stream);
-  }
-  else {
-    localMedia.once('capture', conn.addStream.bind(conn));
-  }
-
-  // add existing remote streams
-  conn.getRemoteStreams().forEach(renderRemote(id));
-
-  // listen for new streams
-  conn.addEventListener('addstream', function(evt) {
-    renderRemote(id)(evt.stream);
-  });
-}
-
-// handle the signaller telling us a peer is leaving
-function handleLeave(id) {
-  // remove old streams
-  (peerVideos[id] || []).forEach(function(el) {
-    el.parentNode.removeChild(el);
-  });
-
-  peerVideos[id] = undefined;
-
-  // close the peer connection
-  peers[id].close();
-  peers[id] = undefined;
-}
+quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+  // add some media (use rtc-captureclass) to configure the stream
+  .addMedia('camera:0 min:1280x768', function(err, media) {
+    media.render(local);
+  })
+  // when a peer is connected (and active) pass it to us for use
+  .on('peer:connect', function(pc, id, data) {
+    // render the remote streams
+    pc.getRemoteStreams().forEach(renderRemote(id));
+  })
+  // when a peer leaves, remove teh media
+  .on('peer:leave', function(id) {
+    // remove media for the target peer from the dom
+    (peerMedia[id] || []).splice(0).forEach(function(el) {
+      el.parentNode.removeChild(el);
+    });
+  })
 
 // render a remote video
 function renderRemote(id) {
-  // create the peer videos list
-  peerVideos[id] = peerVideos[id] || [];
+  // create the peer media list
+  peerMedia[id] = peerMedia[id] || [];
 
   return function(stream) {
-    peerVideos[id] = peerVideos[id].concat(media(stream).render(remote));
+    peerMedia[id] = peerMedia[id].concat(media(stream).render(remote));
   }
 }
-// render to local
-localMedia.render(local);
-
-// handle the connection stuff
-quickconnect(opts)
-  .on('peer', handleConnect)
-  .on('leave', handleLeave);
 
 /* extra code to handle dynamic html and css creation */
 
