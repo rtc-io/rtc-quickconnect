@@ -4,7 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
-    "test": "zuul -- test/datachannel.js",
+    "test": "zuul -- test/all.js",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
