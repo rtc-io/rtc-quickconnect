@@ -30,6 +30,9 @@ localMedia.once('capture', function(stream) {
     })
 });
 
+// render the local media
+localMedia.render(local);
+
 // render a remote video
 function renderRemote(id) {
   // create the peer media list
