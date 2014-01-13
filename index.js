@@ -131,14 +131,15 @@ module.exports = function(signalhost, opts) {
   // create the known data channels registry
   var channels = {};
 
-  function gotPeerChannel(channel, data) {
+  function gotPeerChannel(channel, pc, data) {
     // create the channelOpen function
     var emitChannelOpen = signaller.emit.bind(
       signaller,
       channel.label + ':open',
       channel,
       data.id,
-      data
+      data,
+      pc
     );
 
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id, channel);
@@ -188,15 +189,14 @@ module.exports = function(signalhost, opts) {
 
       // create the channels
       Object.keys(channels).forEach(function(label) {
-        gotPeerChannel(pc.createDataChannel(label, channels[label]), data);
+        gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
       });
     }
     else {
       pc.ondatachannel = function(evt) {
-        console.log('received data channel event', evt, channels);
         // if the data channel is a known channel monitor it for open
         if (evt && evt.channel && channels[evt.channel.label] !== undefined) {
-          gotPeerChannel(evt.channel, data);
+          gotPeerChannel(evt.channel, pc, data);
         }
       };
     }
