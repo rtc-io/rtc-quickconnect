@@ -21,8 +21,8 @@ determine the room for your application signalling.
 ```js
 var quickconnect = require('rtc-quickconnect');
 
-quickconnect({ ns: 'test', signalhost: 'http://sig.rtc.io:50000' })
-  .on('peer', function(conn, id, data, monitor) {
+quickconnect('http://rtc.io/switchboard/')
+  .on('peer', function(pc, id, data, monitor) {
     console.log('got a new friend, id: ' + id, conn);
   });
 ```
@@ -35,22 +35,17 @@ By default, the `RTCPeerConnection` created by quickconnect will not be
 
 ```js
 var quickconnect = require('rtc-quickconnect');
-var opts = {
-  ns: 'dctest',
-  data: true,
-  signalhost: 'http://sig.rtc.io:50000'
-};
 
-quickconnect(opts)
-  .on('peer', function(connection, id, data, monitor) {
-    console.log('got a new friend: ' + id, connection);
-  })
-  .on('dc:open', function(dc, id) {
-    dc.addEventListener('message', function(evt) {
+quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+  // tell quickconnect we want a datachannel called test
+  .createDataChannel('test')
+  // when the test channel is open, let us know
+  .on('test:open', function(dc, id) {
+    dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
-    });
+    };
 
-    console.log('dc open for peer: ' + id);
+    console.log('test dc open for peer: ' + id);
     dc.send('hi');
   });
 ```
@@ -140,76 +135,67 @@ Under the hood, quickconnect uses the
 [rtc/couple](https://github.com/rtc-io/rtc#rtccouple) logic, and the options
 passed to quickconnect are also passed onto this function.
 
+#### Broadcasting Media using Quickconnect
+
+To be completed.
+
+#### Using Data Channels with QuickConnect
+
+To be completed.
+
 ## Additional examples
 
 ### Full Reactive Stream Conference Example
 
 ```js
 var quickconnect = require('rtc-quickconnect');
+var media = require('rtc-media');
 var crel = require('crel');
 
 // create containers for our local and remote video
 var local = crel('div', { class: 'local' });
 var remote = crel('div', { class: 'remote' });
-
-var peers = {};
-var peerVideos = {};
+var media  
+var peerMedia = {};
 
 // capture local media
-var media = require('rtc-media');
 var localMedia = media();
 
-function handleConnect(conn, id, data, monitor) {
-  // save the peer
-  peers[id] = conn;
+// require('cog/logger').enable('*');
 
-  // hook up our local media
-  if (localMedia.stream) {
-    conn.addStream(localMedia.stream);
-  }
-  else {
-    localMedia.once('capture', conn.addStream.bind(conn));
-  }
+// once media is captured, connect
+localMedia.once('capture', function(stream) {
+  quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+    // broadcast our captured media to other participants in the room
+    .broadcast(stream)
+    // when a peer is connected (and active) pass it to us for use
+    .on('peer:connect', function(pc, id, data) {
+      console.log('peer connected: ', id);
 
-  // add existing remote streams
-  conn.getRemoteStreams().forEach(renderRemote(id));
+      // render the remote streams
+      pc.getRemoteStreams().forEach(renderRemote(id));
+    })
+    // when a peer leaves, remove teh media
+    .on('peer:leave', function(id) {
+      // remove media for the target peer from the dom
+      (peerMedia[id] || []).splice(0).forEach(function(el) {
+        el.parentNode.removeChild(el);
+      });
+    })
+});
 
-  // listen for new streams
-  conn.addEventListener('addstream', function(evt) {
-    renderRemote(id)(evt.stream);
-  });
-}
-
-// handle the signaller telling us a peer is leaving
-function handleLeave(id) {
-  // remove old streams
-  (peerVideos[id] || []).forEach(function(el) {
-    el.parentNode.removeChild(el);
-  });
-
-  peerVideos[id] = undefined;
-
-  // close the peer connection
-  peers[id].close();
-  peers[id] = undefined;
-}
+// render the local media
+localMedia.render(local);
 
 // render a remote video
 function renderRemote(id) {
-  // create the peer videos list
-  peerVideos[id] = peerVideos[id] || [];
+  // create the peer media list
+  peerMedia[id] = peerMedia[id] || [];
 
   return function(stream) {
-    peerVideos[id] = peerVideos[id].concat(media(stream).render(remote));
+    peerMedia[id] = peerMedia[id].concat(media(stream).render(remote));
   }
 }
-// render to local
-localMedia.render(local);
-
-// handle the connection stuff
-quickconnect({ data: true, ns: 'conftest', signalhost: 'http://sig.rtc.io:50000/' })
-  .on('peer', handleConnect)
-  .on('leave', handleLeave);
 
 /* extra code to handle dynamic html and css creation */
 
@@ -228,7 +214,7 @@ document.body.appendChild(remote);
 
 ### Apache 2.0
 
-Copyright 2013 National ICT Australia Limited (NICTA)
+Copyright 2014 National ICT Australia Limited (NICTA)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
