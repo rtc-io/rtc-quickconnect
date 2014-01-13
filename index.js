@@ -120,104 +120,66 @@ var reTrailingSlash = /\/$/;
   passed to quickconnect are also passed onto this function.
 
 **/
-module.exports = function(opts) {
+module.exports = function(signalhost, opts) {
   var hash = location.hash.slice(1);
-  var emitter = new EventEmitter();
-  var peers = {};
-  var monitor;
+  var signaller = require('rtc-signaller')(signalhost);
 
-  function channel(peerId, dc) {
-    dc.onopen = emitter.emit.bind(emitter, 'dc:open', dc, peerId);
-  }
+  // init configurable vars
+  var ns = (opts || {}).ns || '';
+  var room = (opts || {}).room;
+  var debugging = (opts || {}).debug;
 
-  // if the opts is a string, then we only have a namespace
-  if (typeof opts == 'string' || (opts instanceof String)) {
-    opts = {
-      ns: opts
-    };
-  }
+  // collect the local streams
+  var localStreams = [];
 
-  // initialise the deafult opts
-  opts = defaults({}, opts, {
-    signalhost: location.origin || 'http://localhost:3000',
-    signaller: location.origin || 'http://localhost:3000',
-    maxAttempts: 1
-  });
-
-  // if debug is enabled, then let's get some noisy logging going
-  if (opts.debug) {
-    rtc.logger.enable('*');
-  }
-
-  // if we haven't been provided an explicit room name generate it now
-  if (! opts.room) {
+  // if the room is not defined, then generate the room name
+  if (! room) {
     // if the hash is not assigned, then create a random hash value
     if (! hash) {
       hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
     }
 
-    // generate the room name
-    opts.room = (opts.ns || '') + '#' + hash;
+    room = ns + '#' + hash;
   }
 
-  // load socket.io script
-  signaller.loadPrimus(opts.signalhost, function() {
-    var socket = Primus.connect(opts.signalhost || opts.signaller);
+  if (debugging) {
+    rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
+  }
 
-    // create our signaller
-    var sig = signaller(socket);
+  signaller.on('peer:announce', function(data, srcState) {
+    var pc;
 
-    sig.on('peer:announce', function(data, srcState) {
-      var peer;
-      var dc;
-      // var dcOpts = { reliable: false };
+    // if the room is not a match, abort
+    if (data.room !== room) {
+      return;
+    }
 
-      // if this is a known peer then abort
-      if ((! data) || peers[data.id]) {
-        return;
-      }
+    // create a peer connection
+    pc = rtc.createConnection(opts, opts.constraints);
 
-      // if the room is not a match, abort
-      if (data.room !== opts.room) {
-        return;
-      }
-
-      // create a peer
-      peer = peers[data.id] = rtc.createConnection(opts, opts.constraints);
-
-      // if we are working with data channels, create a data channel too
-      if (opts.data && sig.isMaster(data.id)) {
-        debug('creating data channel');
-        channel(data.id, peer.createDataChannel('qc-data'));
-      }
-      else if (opts.data) {
-        peer.ondatachannel = function(evt) {
-          debug('received remote data channel notification');
-          channel(data.id, evt.channel);
-        };
-      }
-
-      // couple the connections
-      monitor = rtc.couple(peer, data.id, sig, opts);
-
-      // trigger the peer event
-      emitter.emit('peer', peer, data.id, data, monitor);
+    // add the local streams
+    localStreams.forEach(function(stream) {
+      pc.addStream(stream);
     });
 
-    // pass on leave events
-    sig.on('peer:leave', emitter.emit.bind(emitter, 'leave'));
-
-    socket.on('open', function() {
-      // provide the signaller via an event so it can be used externally
-      emitter.emit('signaller', sig);
-
-      // announce ourselves to our new friend
-      sig.announce({ room: opts.room });
+    // couple the connections
+    rtc.couple(pc, data.id, signaller, opts).once('active', function() {
+      signaller.emit('peer:connect', pc, data.id, data);
     });
-
   });
 
-  return emitter;
+  // announce ourselves to our new friend
+  signaller.announce({ room: room });
+
+  // patch in the helper functions
+  signaller.broadcast = function(stream) {
+    localStreams.push(stream);
+
+    return signaller;
+  };
+
+  // pass the signaller on
+  return signaller;
 };
 
 /**

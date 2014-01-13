@@ -11,6 +11,8 @@ var peerMedia = {};
 // capture local media
 var localMedia = media();
 
+// require('cog/logger').enable('*');
+
 // once media is captured, connect
 localMedia.once('capture', function(stream) {
   quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
@@ -18,6 +20,8 @@ localMedia.once('capture', function(stream) {
     .broadcast(stream)
     // when a peer is connected (and active) pass it to us for use
     .on('peer:connect', function(pc, id, data) {
+      console.log('peer connected: ', id);
+
       // render the remote streams
       pc.getRemoteStreams().forEach(renderRemote(id));
     })
