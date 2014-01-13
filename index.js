@@ -221,9 +221,11 @@ module.exports = function(signalhost, opts) {
   signaller.announce({ room: room });
 
   /**
-    #### Broadcasting Media using Quickconnect
+    #### broadcast(stream)
 
-    To be completed.
+    Add the stream to the set of local streams that we will broadcast
+    to other peers.
+
   **/
   signaller.broadcast = function(stream) {
     localStreams.push(stream);
@@ -231,9 +233,22 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
-    #### Using Data Channels with QuickConnect
+    #### createDataChannel(label, config)
 
-    To be completed.
+    Request that a data channel with the specified `label` is created on
+    the peer connection.  When the data channel is open and available, an
+    event will be triggered using the label of the data channel.
+
+    For example, if a new data channel was requested using the following
+    call:
+
+    ```js
+    var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
+    ```
+
+    Then when the data channel is ready for use, a `test:open` event would
+    be emitted by `qc`.
+
   **/
   signaller.createDataChannel = function(label, opts) {
     // save the data channel opts in the local channels dictionary

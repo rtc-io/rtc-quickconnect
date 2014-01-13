@@ -192,13 +192,26 @@ Under the hood, quickconnect uses the
 [rtc/couple](https://github.com/rtc-io/rtc#rtccouple) logic, and the options
 passed to quickconnect are also passed onto this function.
 
-#### Broadcasting Media using Quickconnect
+#### broadcast(stream)
 
-To be completed.
+Add the stream to the set of local streams that we will broadcast
+to other peers.
 
-#### Using Data Channels with QuickConnect
+#### createDataChannel(label, config)
 
-To be completed.
+Request that a data channel with the specified `label` is created on
+the peer connection.  When the data channel is open and available, an
+event will be triggered using the label of the data channel.
+
+For example, if a new data channel was requested using the following
+call:
+
+```js
+var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
+```
+
+Then when the data channel is ready for use, a `test:open` event would
+be emitted by `qc`.
 
 ## License(s)
 
