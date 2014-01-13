@@ -1,10 +1,11 @@
 # rtc-quickconnect
 
-This is a very high level helper library designed to help you get up
+This is a high level helper module designed to help you get up
 an running with WebRTC really, really quickly.  By using this module you
 are trading off some flexibility, so if you need a more flexible
 configuration you should drill down into lower level components of the
-[rtc.io](http://www.rtc.io) suite.
+[rtc.io](http://www.rtc.io) suite.  In particular you should check out
+[rtc](https://github.com/rtc-io/rtc).
 
 
 [![NPM](https://nodei.co/npm/rtc-quickconnect.png)](https://nodei.co/npm/rtc-quickconnect/)
@@ -14,9 +15,7 @@ configuration you should drill down into lower level components of the
 ## Example Usage
 
 In the simplest case you simply call quickconnect with a single string
-argument to establish a namespace for your demo or application.  This string
-will then be combined with randomly generated location hash that will
-determine the room for your application signalling.
+argument which tells quickconnect which server to use for signaling:
 
 ```js
 var quickconnect = require('rtc-quickconnect');
@@ -27,11 +26,21 @@ quickconnect('http://rtc.io/switchboard/')
   });
 ```
 
-## Example Usage (Using Data Channels)
+## Example Usage (using data channels)
 
-By default, the `RTCPeerConnection` created by quickconnect will not be
-"data channels ready".  You can change that very simply, by flagging
-`data` as `true` during quickconnect initialization:
+When working with WebRTC data channels, you can call the `createDataChannel`
+function helper that is attached to the object returned from the
+`quickconnect` call.  The `createDataChannel` function signature matches
+the signature of the `RTCPeerConnection` `createDataChannel` function.
+
+At the minimum it requires a label for the channel, but you can also pass
+through a dictionary of options that can be used to fine tune the
+data channel behaviour.  For more information on these options, I'd
+recommend having a quick look at the WebRTC spec:
+
+http://dev.w3.org/2011/webrtc/editor/webrtc.html#dictionary-rtcdatachannelinit-members
+
+If in doubt, I'd recommend not passing through options.
 
 ```js
 var quickconnect = require('rtc-quickconnect');
@@ -50,26 +59,89 @@ quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
   });
 ```
 
-## How it works?
+__NOTE:__ Data channel interoperability has been tested between Chrome 32
+and Firefox 26, which both make use of SCTP data channels.
 
-__NOTE:__ Our public test signaller is currently unavailable, you will
-need to run up a version of `rtc-switchboard` locally for the time being.
+__NOTE:__ The current stable version of Chrome is 31, so interoperability
+with Firefox right now will be hard to achieve.
 
-The `rtc-quickconnect` module makes use of our internal, publicly available
-signaller which uses [primus](https://github.com/primus/primus) and our
-[signalling adapter](https://github.com/rtc-io/rtc-switchboard).
+## Example Usage (using captured media)
 
-Our test signaller is exactly that, __something we use for testing__.  If
-you want to run your own signaller this is very simple and you should
-consult the `rtc-signaller-socket.io` module for information on how to
-do this.  Once you have this running, simply provide quickconnect a
-signaller option when creating:
+Another example is displayed below, and this example demonstrates how
+to use `rtc-quickconnect` to create a simple video conferencing application:
 
 ```js
 var quickconnect = require('rtc-quickconnect');
+var media = require('rtc-media');
+var crel = require('crel');
 
-quickconnect({ ns: 'test', signaller: 'http://mysignaller.com:3000' });
+// create containers for our local and remote video
+var local = crel('div', { class: 'local' });
+var remote = crel('div', { class: 'remote' });
+var media  
+var peerMedia = {};
+
+// capture local media
+var localMedia = media();
+
+// require('cog/logger').enable('*');
+
+// once media is captured, connect
+localMedia.once('capture', function(stream) {
+  quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+    // broadcast our captured media to other participants in the room
+    .broadcast(stream)
+    // when a peer is connected (and active) pass it to us for use
+    .on('peer:connect', function(pc, id, data) {
+      console.log('peer connected: ', id);
+
+      // render the remote streams
+      pc.getRemoteStreams().forEach(renderRemote(id));
+    })
+    // when a peer leaves, remove teh media
+    .on('peer:leave', function(id) {
+      // remove media for the target peer from the dom
+      (peerMedia[id] || []).splice(0).forEach(function(el) {
+        el.parentNode.removeChild(el);
+      });
+    })
+});
+
+// render the local media
+localMedia.render(local);
+
+// render a remote video
+function renderRemote(id) {
+  // create the peer media list
+  peerMedia[id] = peerMedia[id] || [];
+
+  return function(stream) {
+    peerMedia[id] = peerMedia[id].concat(media(stream).render(remote));
+  }
+}
+
+/* extra code to handle dynamic html and css creation */
+
+// add some basic styling
+document.head.appendChild(crel('style', [
+  '.local { position: absolute;  right: 10px; }',
+  '.local video { max-width: 200px; }'
+].join('\n')));
+
+// add the local and remote elements
+document.body.appendChild(local);
+document.body.appendChild(remote);
 ```
+
+## Regarding Signalling and a Signalling Server
+
+Signaling is an important part of setting up a WebRTC connection and for
+our examples we use our own test instance of the
+[rtc-switchboard](https://github.com/rtc-io/rtc-switchboard). For your
+testing and development you are more than welcome to use this also, but
+just be aware that we use this for our testing so it may go up and down
+a little.  If you need something more stable, why not consider deploying
+an instance of the switchboard yourself - it's pretty easy :)
 
 ## Reference
 
@@ -142,73 +214,6 @@ To be completed.
 #### Using Data Channels with QuickConnect
 
 To be completed.
-
-## Additional examples
-
-### Full Reactive Stream Conference Example
-
-```js
-var quickconnect = require('rtc-quickconnect');
-var media = require('rtc-media');
-var crel = require('crel');
-
-// create containers for our local and remote video
-var local = crel('div', { class: 'local' });
-var remote = crel('div', { class: 'remote' });
-var media  
-var peerMedia = {};
-
-// capture local media
-var localMedia = media();
-
-// require('cog/logger').enable('*');
-
-// once media is captured, connect
-localMedia.once('capture', function(stream) {
-  quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
-    // broadcast our captured media to other participants in the room
-    .broadcast(stream)
-    // when a peer is connected (and active) pass it to us for use
-    .on('peer:connect', function(pc, id, data) {
-      console.log('peer connected: ', id);
-
-      // render the remote streams
-      pc.getRemoteStreams().forEach(renderRemote(id));
-    })
-    // when a peer leaves, remove teh media
-    .on('peer:leave', function(id) {
-      // remove media for the target peer from the dom
-      (peerMedia[id] || []).splice(0).forEach(function(el) {
-        el.parentNode.removeChild(el);
-      });
-    })
-});
-
-// render the local media
-localMedia.render(local);
-
-// render a remote video
-function renderRemote(id) {
-  // create the peer media list
-  peerMedia[id] = peerMedia[id] || [];
-
-  return function(stream) {
-    peerMedia[id] = peerMedia[id].concat(media(stream).render(remote));
-  }
-}
-
-/* extra code to handle dynamic html and css creation */
-
-// add some basic styling
-document.head.appendChild(crel('style', [
-  '.local { position: absolute;  right: 10px; }',
-  '.local video { max-width: 200px; }'
-].join('\n')));
-
-// add the local and remote elements
-document.body.appendChild(local);
-document.body.appendChild(remote);
-```
 
 ## License(s)
 
