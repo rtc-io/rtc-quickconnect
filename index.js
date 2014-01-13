@@ -132,6 +132,27 @@ module.exports = function(signalhost, opts) {
   // collect the local streams
   var localStreams = [];
 
+  // create the known data channels registry
+  var channels = {};
+
+  function gotPeerChannel(channel, data) {
+    // create the channelOpen function
+    var emitChannelOpen = signaller.emit.bind(
+      signaller,
+      channel.label + ':open',
+      channel,
+      data.id,
+      data
+    );
+
+    debug('channel ' + channel.label + ' discovered for peer: ' + data.id, channel);
+    if (channel.readyState === 'open') {
+      return emitChannelOpen();
+    }
+
+    channel.onopen = emitChannelOpen;
+  }
+
   // if the room is not defined, then generate the room name
   if (! room) {
     // if the hash is not assigned, then create a random hash value
@@ -148,6 +169,7 @@ module.exports = function(signalhost, opts) {
 
   signaller.on('peer:announce', function(data, srcState) {
     var pc;
+    var monitor;
 
     // if the room is not a match, abort
     if (data.room !== room) {
@@ -162,19 +184,64 @@ module.exports = function(signalhost, opts) {
       pc.addStream(stream);
     });
 
+    // add the data channels
+    // do this differently based on whether the connection is a
+    // master or a slave connection
+    if (signaller.isMaster(data.id)) {
+      debug('is master, creating data channels: ', Object.keys(channels));
+
+      // create the channels
+      Object.keys(channels).forEach(function(label) {
+        gotPeerChannel(pc.createDataChannel(label, channels[label]), data);
+      });
+    }
+    else {
+      pc.ondatachannel = function(evt) {
+        console.log('received data channel event', evt, channels);
+        // if the data channel is a known channel monitor it for open
+        if (evt && evt.channel && channels[evt.channel.label] !== undefined) {
+          gotPeerChannel(evt.channel, data);
+        }
+      };
+    }
+
     // couple the connections
-    rtc.couple(pc, data.id, signaller, opts).once('active', function() {
+    monitor = rtc.couple(pc, data.id, signaller, opts);
+
+    // once active, trigger the peer connect event
+    monitor.once('active', function() {
       signaller.emit('peer:connect', pc, data.id, data);
     });
+
+    // if we are the master connnection, create the offer
+    // NOTE: this only really for the sake of politeness, as rtc couple
+    // implementation handles the slave attempting to create an offer
+    if (signaller.isMaster(data.id)) {
+      monitor.createOffer();
+    }
   });
 
   // announce ourselves to our new friend
   signaller.announce({ room: room });
 
-  // patch in the helper functions
+  /**
+    #### Broadcasting Media using Quickconnect
+
+    To be completed.
+  **/
   signaller.broadcast = function(stream) {
     localStreams.push(stream);
+    return signaller;
+  };
 
+  /**
+    #### Using Data Channels with QuickConnect
+
+    To be completed.
+  **/
+  signaller.createDataChannel = function(label, opts) {
+    // save the data channel opts in the local channels dictionary
+    channels[label] = opts || null;
     return signaller;
   };
 
