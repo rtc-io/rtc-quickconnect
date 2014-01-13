@@ -4,7 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "zuul -- test/datachannel.js",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
@@ -28,6 +28,9 @@
   },
   "devDependencies": {
     "crel": "~1.1.0",
-    "rtc-media": "~1.5.1"
+    "rtc-media": "~1.5.1",
+    "tape": "~2.3.2",
+    "rtc-switchboard": "~0.5.0",
+    "uuid": "~1.4.1"
   }
 }
