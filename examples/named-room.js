@@ -1,9 +1,4 @@
 var quickconnect = require('../');
-var opts = {
-  room: 'dctest-room',
-  data: true,
-  signalhost: 
-};
 
 quickconnect('http://rtc.io/switchboard/', { room: 'dctest-room' })
   .addChannel('test')
