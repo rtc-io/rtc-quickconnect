@@ -221,6 +221,15 @@ module.exports = function(signalhost, opts) {
   signaller.announce({ room: room });
 
   /**
+    ### Quickconnect Broadcast and Data Channel Helper Functions
+
+    The following are functions that are patched into the `rtc-signaller`
+    instance that make working with and creating functional WebRTC applications
+    a lot simpler.
+    
+  **/
+
+  /**
     #### broadcast(stream)
 
     Add the stream to the set of local streams that we will broadcast

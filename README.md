@@ -192,6 +192,12 @@ Under the hood, quickconnect uses the
 [rtc/couple](https://github.com/rtc-io/rtc#rtccouple) logic, and the options
 passed to quickconnect are also passed onto this function.
 
+### Quickconnect Broadcast and Data Channel Helper Functions
+
+The following are functions that are patched into the `rtc-signaller`
+instance that make working with and creating functional WebRTC applications
+a lot simpler.
+
 #### broadcast(stream)
 
 Add the stream to the set of local streams that we will broadcast
