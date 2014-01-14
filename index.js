@@ -174,7 +174,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // create a peer connection
-    pc = rtc.createConnection(opts, opts.constraints);
+    pc = rtc.createConnection(opts, (opts || {}).constraints);
 
     // add the local streams
     localStreams.forEach(function(stream) {
