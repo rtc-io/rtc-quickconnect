@@ -204,6 +204,9 @@ module.exports = function(signalhost, opts) {
     // couple the connections
     monitor = rtc.couple(pc, data.id, signaller, opts);
 
+    // emit the peer event as per <= rtc-quickconnect@0.7
+    signaller.emit('peer', pc, data.id, data, monitor);
+
     // once active, trigger the peer connect event
     monitor.once('active', function() {
       signaller.emit('peer:connect', pc, data.id, data);
