@@ -32,7 +32,8 @@
     "tape": "~2.3.2",
     "rtc-switchboard": "~0.5.0",
     "uuid": "~1.4.1",
-    "rtc-videoproc": "~0.7.0",
-    "rtc-captureconfig": "~0.4.0"
+    "rtc-videoproc": "~0.8.1",
+    "rtc-captureconfig": "~0.4.0",
+    "rtc-bufferedchannel": "~0.1.0"
   }
 }

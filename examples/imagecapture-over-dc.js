@@ -2,10 +2,10 @@ var quickconnect = require('../');
 var media = require('rtc-media');
 var videoproc = require('rtc-videoproc');
 var captureConfig = require('rtc-captureconfig');
-// var channelbuffer = require('rtc-channelbuffer');
+var bc = require('rtc-bufferedchannel');
 
 // create a video processing canvas that will capture an update every second
-var canvas = videoproc(document.body, { fps: 1 });
+var canvas = videoproc(document.body, { greedy: true, fps: 1 });
 var channels = [];
 var images = {};
 
@@ -31,12 +31,14 @@ quickconnect('http://rtc.io/switchboard/', { room: 'demo-snaps' })
   // tell quickconnect we want a datachannel called test
   .createDataChannel('snaps')
   // when the test channel is open, let us know
-  .on('snaps:open', function(channel, id) {
-    channel.onmessage = function(evt) {
+  .on('snaps:open', function(dc, id) {
+    var channel = bc(dc);
+
+    channel.on('data', function(data) {
       if (images[id]) {
-        images[id].src = evt.data;
+        images[id].src = data;
       }
-    };
+    });
 
     // add this data channel to the list of channels
     console.log('detect new channel open for peer: ' + id);
