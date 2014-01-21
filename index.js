@@ -164,7 +164,7 @@ module.exports = function(signalhost, opts) {
     rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
   }
 
-  signaller.on('peer:announce', function(data, srcState) {
+  signaller.on('peer:announce', function(data) {
     var pc;
     var monitor;
 
@@ -221,7 +221,9 @@ module.exports = function(signalhost, opts) {
   });
 
   // announce ourselves to our new friend
-  signaller.announce({ room: room });
+  setTimeout(function() {
+    signaller.announce({ room: room });
+  }, 0);
 
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
