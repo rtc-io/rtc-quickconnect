@@ -34,6 +34,6 @@
     "uuid": "~1.4.1",
     "rtc-videoproc": "~0.8.1",
     "rtc-captureconfig": "~0.4.0",
-    "rtc-bufferedchannel": "~0.1.0"
+    "rtc-bufferedchannel": "~0.2.0"
   }
 }
