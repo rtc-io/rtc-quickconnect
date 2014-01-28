@@ -1,1 +1,2 @@
+require('./profile');
 require('./datachannel');
