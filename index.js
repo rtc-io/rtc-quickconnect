@@ -6,6 +6,7 @@ var rtc = require('rtc');
 var debug = rtc.logger('rtc-quickconnect');
 var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
+var extend = require('cog/extend');
 var reTrailingSlash = /\/$/;
 
 /**
@@ -124,6 +125,7 @@ module.exports = function(signalhost, opts) {
   var ns = (opts || {}).ns || '';
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
+  var profile = {};
 
   // collect the local streams
   var localStreams = [];
@@ -222,7 +224,11 @@ module.exports = function(signalhost, opts) {
 
   // announce ourselves to our new friend
   setTimeout(function() {
-    signaller.announce({ room: room });
+    var data = extend({}, profile, { room: room });
+
+    // announce and emit the local announce event
+    signaller.announce(data);
+    signaller.emit('local:announce', data);
   }, 0);
 
   /**
@@ -267,6 +273,19 @@ module.exports = function(signalhost, opts) {
   signaller.createDataChannel = function(label, opts) {
     // save the data channel opts in the local channels dictionary
     channels[label] = opts || null;
+    return signaller;
+  };
+
+  /**
+    #### profile(data)
+
+    Update the profile data with the attached information, so when 
+    the signaller announces it includes this data in addition to any
+    room and id information.
+
+  **/
+  signaller.profile = function(data) {
+    extend(profile, data);
     return signaller;
   };
 
