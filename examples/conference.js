@@ -16,6 +16,8 @@ var localMedia = media();
 // once media is captured, connect
 localMedia.once('capture', function(stream) {
   quickconnect('http://rtc.io/switchboard/', { room: 'conftest' })
+    // create a chat channel
+    .createDataChannel('chat')
     // broadcast our captured media to other participants in the room
     .broadcast(stream)
     // when a peer is connected (and active) pass it to us for use
@@ -24,6 +26,15 @@ localMedia.once('capture', function(stream) {
 
       // render the remote streams
       pc.getRemoteStreams().forEach(renderRemote(id));
+    })
+    .on('chat:open', function(dc) {
+      dc.onmessage = function(evt) {
+        console.log('received chat message: ' + evt.data);
+      };
+
+      setInterval(function() {
+        dc.send('hello');
+      }, 1000);
     })
     // when a peer leaves, remove teh media
     .on('peer:leave', function(id) {
