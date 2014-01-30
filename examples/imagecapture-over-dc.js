@@ -1,25 +1,32 @@
 var quickconnect = require('../');
 var media = require('rtc-media');
 var videoproc = require('rtc-videoproc');
-var captureConfig = require('rtc-captureconfig');
 var bc = require('rtc-bufferedchannel');
+var crel = require('crel');
+
+var video = crel('video');
+var canvas = crel('canvas');
+
+// initialise capture constraints
+var captureConfig = require('rtc-captureconfig');
+var constraints = captureConfig('camera max:320x240').toConstraints();
 
 // create a video processing canvas that will capture an update every second
-var canvas = videoproc(document.body, { greedy: true, fps: 1 });
 var channels = [];
+var processor = videoproc(video, canvas, {
+  filters: [ require('rtc-filter-grayscale') ],
+  greedy: true,
+  fps: 1
+});
+
 var images = {};
 
 // capture media and render to the canvas
-media({
-  constraints: captureConfig('camera max:320x240').toConstraints()
-}).render(canvas);
-
-// add the processing options
-canvas.pipeline.add(require('rtc-videoproc/filters/grayscale'))
+media({ constraints: constraints }).render(video);
 
 // once the canvas has been updated with the filters applied
 // capture the image data from the canvas and send via the data channel
-canvas.addEventListener('postprocess', function(evt) {
+processor.on('frame', function() {
   var dataUri = canvas.toDataURL('image/jpeg', 0.8);
 
   channels.forEach(function(channel) {
@@ -45,7 +52,7 @@ quickconnect('http://rtc.io/switchboard/', { room: 'demo-snaps' })
     channels.push(channel);
 
     // create an image output for this peer
-    images[id] = document.createElement('img');
+    images[id] = crel('img');
     document.body.appendChild(images[id]);
   })
   // when a peer leaves, clean up their image

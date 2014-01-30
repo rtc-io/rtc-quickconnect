@@ -27,13 +27,14 @@
     "rtc-core": "~0.7.1"
   },
   "devDependencies": {
-    "crel": "~1.1.0",
+    "crel": "~1.1.1",
     "rtc-media": "~1.5.1",
-    "tape": "~2.3.2",
+    "tape": "~2.4.0",
     "rtc-switchboard": "~0.5.0",
     "uuid": "~1.4.1",
-    "rtc-videoproc": "~0.8.1",
+    "rtc-videoproc": "~0.10.1",
     "rtc-captureconfig": "~0.4.0",
-    "rtc-bufferedchannel": "~0.2.0"
+    "rtc-bufferedchannel": "~0.2.0",
+    "rtc-filter-grayscale": "~0.1.0"
   }
 }
