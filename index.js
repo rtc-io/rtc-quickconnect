@@ -8,6 +8,7 @@ var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var reTrailingSlash = /\/$/;
+var CHANNEL_HEARTBEAT = '__heartbeat';
 
 /**
   # rtc-quickconnect
@@ -125,6 +126,8 @@ module.exports = function(signalhost, opts) {
   var ns = (opts || {}).ns || '';
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
+  var disableHeartbeat = (opts || {}).disableHeartbeat;
+  var heartbeatInterval = (opts || {}).heartbeatInterval || 3000;
   var profile = {};
 
   // collect the local streams
@@ -132,6 +135,9 @@ module.exports = function(signalhost, opts) {
 
   // create the known data channels registry
   var channels = {};
+
+  // create the heartbeats registry
+  var beats = {};
 
   function gotPeerChannel(channel, pc, data) {
     // create the channelOpen function
@@ -150,6 +156,23 @@ module.exports = function(signalhost, opts) {
     }
 
     channel.onopen = emitChannelOpen;
+  }
+
+  function initHeartbeat(channel, pc, data) {
+    debug('created heartbeat channel for peer: ' + data.id);
+
+    // save the heartbeat information
+    beats[data.id] = channel;
+
+    // start monitoring using the heartbeat channel to keep tabs on our
+    // peers availability
+    channel.onmessage = function(evt) {
+      console.log('received hearbeat message: ' + evt.data)
+    };
+
+    setInterval(function() {
+      channel.send('tick: ' + Date.now());
+    }, heartbeatInterval);
   }
 
   // if the room is not defined, then generate the room name
@@ -189,6 +212,11 @@ module.exports = function(signalhost, opts) {
     if (signaller.isMaster(data.id)) {
       debug('is master, creating data channels: ', Object.keys(channels));
 
+      // unless the heartbeat is disabled then create a heartbeat datachannel
+      if (! disableHeartbeat) {
+        initHeartbeat(pc.createDataChannel(CHANNEL_HEARTBEAT), pc, data);
+      }
+
       // create the channels
       Object.keys(channels).forEach(function(label) {
         gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
@@ -196,9 +224,20 @@ module.exports = function(signalhost, opts) {
     }
     else {
       pc.ondatachannel = function(evt) {
-        // if the data channel is a known channel monitor it for open
-        if (evt && evt.channel && channels[evt.channel.label] !== undefined) {
-          gotPeerChannel(evt.channel, pc, data);
+        var channel = evt && evt.channel;
+
+        // if we have no channel, abort
+        if (! channel) {
+          return;
+        }
+
+        // if the channel is the heartbeat, then init the heartbeat
+        if (channel.label === CHANNEL_HEARTBEAT) {
+          initHeartbeat(channel, pc, data);
+        }
+        // otherwise, if this is a known channel, initialise it
+        else if (channels[channel.label] !== undefined) {
+          gotPeerChannel(channel, pc, data);
         }
       };
     }
