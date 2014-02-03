@@ -167,7 +167,7 @@ module.exports = function(signalhost, opts) {
     // start monitoring using the heartbeat channel to keep tabs on our
     // peers availability
     channel.onmessage = function(evt) {
-      console.log('received hearbeat message: ' + evt.data)
+      // console.log('received hearbeat message: ' + evt.data)
     };
 
     setInterval(function() {
