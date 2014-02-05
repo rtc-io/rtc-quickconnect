@@ -45,16 +45,21 @@ test('close connection 0', function(t) {
 });
 
 test('connections both trigger received peer:disconnect events', function(t) {
-  t.plan(2);
-  connections[1].once('peer:disconnect', function(id) {
-    t.equal(id, connections[0].id, 'got peer:disconnect event for connection:0');
-  });
-
+  t.plan(4);
   connections[0].once('peer:disconnect', function(id) {
     t.equal(id, connections[1].id, 'got peer:disconnect event for connection:1');
   });
 
+  connections[0].once('test:close', t.pass.bind(t, 'connection:0 data channel close event fired'));
+
+  connections[1].once('peer:disconnect', function(id) {
+    t.equal(id, connections[0].id, 'got peer:disconnect event for connection:0');
+  });
+
+  connections[1].once('test:close', t.pass.bind(t, 'connection:1 data channel close event fired'));
+
   setTimeout(function() {
     t.fail('timed out waiting for peer:disconnect');
+    t.end();
   }, 10000);
 });
