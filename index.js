@@ -127,17 +127,17 @@ module.exports = function(signalhost, opts) {
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
   var disableHeartbeat = (opts || {}).disableHeartbeat;
-  var heartbeatInterval = (opts || {}).heartbeatInterval || 3000;
+  var heartbeatInterval = (opts || {}).heartbeatInterval || 1000;
   var profile = {};
 
   // collect the local streams
   var localStreams = [];
 
+  // create the peers registry
+  var peers = {};
+
   // create the known data channels registry
   var channels = {};
-
-  // create the heartbeats registry
-  var beats = {};
 
   function gotPeerChannel(channel, pc, data) {
     // create the channelOpen function
@@ -165,14 +165,22 @@ module.exports = function(signalhost, opts) {
     function timeoutConnection() {
       console.log('connection with ' + data.id + ' timed out');
 
+      // trigger a peer disconnect event
+      signaller.emit('peer:disconnect', data.id);
+
+      // trigger close events for each of the channels
+      Object.keys(channels).forEach(function(channel) {
+        signaller.emit(channel + ':close');
+      });
+
+      // clear the peer reference
+      peers[data.id] = undefined;
+
       // stop trying to send heartbeat messages
       clearInterval(hbTimer);
     }
 
     debug('created heartbeat channel for peer: ' + data.id);
-
-    // save the heartbeat information
-    beats[data.id] = channel;
 
     // start monitoring using the heartbeat channel to keep tabs on our
     // peers availability
@@ -213,7 +221,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // create a peer connection
-    pc = rtc.createConnection(opts, (opts || {}).constraints);
+    pc = peers[data.id] = rtc.createConnection(opts, (opts || {}).constraints);
 
     // add the local streams
     localStreams.forEach(function(stream) {
