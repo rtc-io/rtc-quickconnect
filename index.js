@@ -314,6 +314,23 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
+    #### close()
+
+    The `close` function provides a convenient way of closing all associated
+    peer connections.
+  **/
+  signaller.close = function() {
+    Object.keys(peers).forEach(function(id) {
+      if (peers[id]) {
+        peers[id].close();
+      }
+    });
+
+    // reset the peer references
+    peers = {};
+  };
+
+  /**
     #### createDataChannel(label, config)
 
     Request that a data channel with the specified `label` is created on
