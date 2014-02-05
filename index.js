@@ -200,6 +200,9 @@ module.exports = function(signalhost, opts) {
 
       channel.send('!HB');
     }, heartbeatInterval);
+
+    // start the heartbeat timer
+    hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatInterval * 2);
   }
 
   // if the room is not defined, then generate the room name
