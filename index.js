@@ -9,6 +9,7 @@ var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var reTrailingSlash = /\/$/;
 var CHANNEL_HEARTBEAT = '__heartbeat';
+var HEARTBEAT = new Uint8Array([0x10]);
 
 /**
   # rtc-quickconnect
@@ -149,8 +150,8 @@ module.exports = function(signalhost, opts) {
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
   var disableHeartbeat = (opts || {}).disableHeartbeat;
-  var heartbeatInterval = (opts || {}).heartbeatInterval || 500;
-  var heartbeatTimeout = (opts || {}).heartbeatTimeout || heartbeatInterval * 10;
+  var heartbeatInterval = (opts || {}).heartbeatInterval || 1000;
+  var heartbeatTimeout = (opts || {}).heartbeatTimeout || heartbeatInterval * 3;
   var profile = {};
 
   // collect the local streams
@@ -186,7 +187,7 @@ module.exports = function(signalhost, opts) {
     var hbTimer;
 
     function timeoutConnection() {
-      console.log('connection with ' + data.id + ' timed out');
+      // console.log(Date.now() + ', connection with ' + data.id + ' timed out');
 
       // trigger a peer disconnect event
       signaller.emit('peer:disconnect', data.id);
@@ -203,29 +204,31 @@ module.exports = function(signalhost, opts) {
       clearInterval(hbTimer);
     }
 
-    debug('created heartbeat channel for peer: ' + data.id);
+    // console.log('created heartbeat channel for peer: ' + data.id);
 
     // start monitoring using the heartbeat channel to keep tabs on our
     // peers availability
     channel.onmessage = function(evt) {
+      // console.log(Date.now() + ', ' + data.id + ': ' + evt.data);
+
       // console.log('received hearbeat message: ' + evt.data)
-      if (evt.data === '!HB') {
-        clearTimeout(hbTimeoutTimer);
-        hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
-      }
+      clearTimeout(hbTimeoutTimer);
+      hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
+
+      // emit the heartbeat for the appropriate connection
+      signaller.emit('hb:' + data.id);
     };
 
     hbTimer  = setInterval(function() {
-      // if the channel is no longer open, then abort
+      // if the channel is not yet, open then abort
       if (channel.readyState !== 'open') {
-        return clearInterval(hbTimer);
+        // TODO: clear the interval if we have previously been sending
+        // messages
+        return;
       }
 
-      channel.send('!HB');
+      channel.send(HEARTBEAT);
     }, heartbeatInterval);
-
-    // start the heartbeat timer
-    hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
   }
 
   // if the room is not defined, then generate the room name
@@ -268,7 +271,9 @@ module.exports = function(signalhost, opts) {
       // unless the heartbeat is disabled then create a heartbeat datachannel
       if (! disableHeartbeat) {
         initHeartbeat(
-          pc.createDataChannel(CHANNEL_HEARTBEAT, { reliable: true}),
+          pc.createDataChannel(CHANNEL_HEARTBEAT, {
+            ordered: false
+          }),
           pc,
           data
         );
