@@ -159,6 +159,16 @@ module.exports = function(signalhost, opts) {
   }
 
   function initHeartbeat(channel, pc, data) {
+    var hbTimeoutTimer;
+    var hbTimer;
+
+    function timeoutConnection() {
+      console.log('connection with ' + data.id + ' timed out');
+
+      // stop trying to send heartbeat messages
+      clearInterval(hbTimer);
+    }
+
     debug('created heartbeat channel for peer: ' + data.id);
 
     // save the heartbeat information
@@ -168,10 +178,14 @@ module.exports = function(signalhost, opts) {
     // peers availability
     channel.onmessage = function(evt) {
       // console.log('received hearbeat message: ' + evt.data)
+      if (evt.data === '!HB') {
+        clearTimeout(hbTimeoutTimer);
+        hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatInterval * 2);
+      }
     };
 
-    setInterval(function() {
-      channel.send('tick: ' + Date.now());
+    hbTimer  = setInterval(function() {
+      channel.send('!HB');
     }, heartbeatInterval);
   }
 
