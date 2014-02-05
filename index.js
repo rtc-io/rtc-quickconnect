@@ -70,6 +70,9 @@ var CHANNEL_HEARTBEAT = '__heartbeat';
 
   ## Handling Peer Disconnection
 
+  __NOTE:__ This functionality is experimental and still in testing, it is
+  recommended that you continue to use the `peer:leave` events at this stage.
+
   Since version `0.11` the following events are also emitted by quickconnect
   objects:
 
@@ -146,7 +149,8 @@ module.exports = function(signalhost, opts) {
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
   var disableHeartbeat = (opts || {}).disableHeartbeat;
-  var heartbeatInterval = (opts || {}).heartbeatInterval || 1000;
+  var heartbeatInterval = (opts || {}).heartbeatInterval || 500;
+  var heartbeatTimeout = (opts || {}).heartbeatTimeout || heartbeatInterval * 10;
   var profile = {};
 
   // collect the local streams
@@ -207,7 +211,7 @@ module.exports = function(signalhost, opts) {
       // console.log('received hearbeat message: ' + evt.data)
       if (evt.data === '!HB') {
         clearTimeout(hbTimeoutTimer);
-        hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatInterval * 2);
+        hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
       }
     };
 
@@ -221,7 +225,7 @@ module.exports = function(signalhost, opts) {
     }, heartbeatInterval);
 
     // start the heartbeat timer
-    hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatInterval * 2);
+    hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
   }
 
   // if the room is not defined, then generate the room name
@@ -263,7 +267,11 @@ module.exports = function(signalhost, opts) {
 
       // unless the heartbeat is disabled then create a heartbeat datachannel
       if (! disableHeartbeat) {
-        initHeartbeat(pc.createDataChannel(CHANNEL_HEARTBEAT), pc, data);
+        initHeartbeat(
+          pc.createDataChannel(CHANNEL_HEARTBEAT, { reliable: true}),
+          pc,
+          data
+        );
       }
 
       // create the channels
