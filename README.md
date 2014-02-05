@@ -110,7 +110,7 @@ localMedia.once('capture', function(stream) {
       }, 1000);
     })
     // when a peer leaves, remove teh media
-    .on('peer:disconnect', function(id) {
+    .on('peer:leave', function(id) {
       // remove media for the target peer from the dom
       (peerMedia[id] || []).splice(0).forEach(function(el) {
         el.parentNode.removeChild(el);
@@ -155,6 +155,9 @@ a little.  If you need something more stable, why not consider deploying
 an instance of the switchboard yourself - it's pretty easy :)
 
 ## Handling Peer Disconnection
+
+__NOTE:__ This functionality is experimental and still in testing, it is
+recommended that you continue to use the `peer:leave` events at this stage.
 
 Since version `0.11` the following events are also emitted by quickconnect
 objects:
