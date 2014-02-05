@@ -38,6 +38,23 @@ test('data channels opened', function(t) {
   });
 });
 
+test('check that we are receiving heartbeats from both connections', function(t) {
+  t.plan(2);
+
+  connections[0].once('hb:' + connections[1].id, function() {
+    t.pass('connection:0 received heartbeat from connection:1');
+  });
+
+  connections[1].once('hb:' + connections[0].id, function() {
+    t.pass('connection:1 received heartbeat from connection:0');
+  });
+
+  setTimeout(function() {
+    t.fail('Timed out waiting for heartbeats');
+    t.end();
+  }, 10000);
+});
+
 test('close connection 0', function(t) {
   t.plan(1);
   connections[0].close();
