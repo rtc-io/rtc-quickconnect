@@ -68,6 +68,25 @@ var CHANNEL_HEARTBEAT = '__heartbeat';
   a little.  If you need something more stable, why not consider deploying
   an instance of the switchboard yourself - it's pretty easy :)
 
+  ## Handling Peer Disconnection
+
+  Since version `0.11` the following events are also emitted by quickconnect
+  objects:
+
+  - `peer:disconnect`
+  - `%label%:close` where `%label%` is the label of the channel
+     you provided in a `createDataChannel` call.
+
+  Basically the `peer:disconnect` can be used as a more accurate version
+  of the `peer:leave` message.  While the `peer:leave` event triggers when
+  the background signaller disconnects, the `peer:disconnect` event is
+  trigger when the actual WebRTC peer connection is closed.
+
+  At present (due to limited browser support for handling peer close events
+  and the like) this is implemented by creating a heartbeat data channel
+  which sends messages on a regular basis between the peers.  When these
+  messages are stopped being received the connection is considered closed.
+
   ## Reference
 
   ```

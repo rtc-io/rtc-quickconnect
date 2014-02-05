@@ -37,7 +37,7 @@ localMedia.once('capture', function(stream) {
       }, 1000);
     })
     // when a peer leaves, remove teh media
-    .on('peer:leave', function(id) {
+    .on('peer:disconnect', function(id) {
       // remove media for the target peer from the dom
       (peerMedia[id] || []).splice(0).forEach(function(el) {
         el.parentNode.removeChild(el);
