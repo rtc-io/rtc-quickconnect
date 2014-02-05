@@ -193,6 +193,11 @@ module.exports = function(signalhost, opts) {
     };
 
     hbTimer  = setInterval(function() {
+      // if the channel is no longer open, then abort
+      if (channel.readyState !== 'open') {
+        return clearInterval(hbTimer);
+      }
+
       channel.send('!HB');
     }, heartbeatInterval);
   }
