@@ -35,6 +35,7 @@
     "rtc-videoproc": "~0.10.1",
     "rtc-captureconfig": "~0.4.0",
     "rtc-bufferedchannel": "~0.2.0",
-    "rtc-filter-grayscale": "~0.1.0"
+    "rtc-filter-grayscale": "~0.1.0",
+    "async": "~0.2.10"
   }
 }
