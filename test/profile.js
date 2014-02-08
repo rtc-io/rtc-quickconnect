@@ -13,7 +13,7 @@ test('create test participant', function(t) {
 });
 
 test('announce with additional profile information', function(t) {
-  t.plan(2);
+  t.plan(3);
 
   clients[0].once('peer:announce', function(data) {
     t.equal(data.name, 'Bob', 'client:0 got name data');
@@ -22,5 +22,41 @@ test('announce with additional profile information', function(t) {
   clients[1] = quickconnect(location.origin).profile({ name: 'Bob' });
   clients[1].once('local:announce', function(data) {
     t.equal(data.name, 'Bob', 'name included in local announce');
+  });
+
+  clients[1].once('peer:announce', function(data) {
+    t.pass('client:1 received reciprocated announce');
+  });
+});
+
+test('create additional client', function(t) {
+  t.plan(3);
+
+  clients[0].once('peer:announce', function(data) {
+    t.equal(data.name, 'Fred', 'client:0 got new client (Fred)');
+  });
+
+  clients[1].once('peer:announce', function(data) {
+    t.equal(data.name, 'Fred', 'client:1 got new client (Fred)');
+  });
+
+  clients[2] = quickconnect(location.origin).profile({ name: 'Fred' });
+  clients[2].once('local:announce', function() {
+    t.pass('have locally announced');
+  });
+});
+
+test('client:2 updates profile', function(t) {
+  t.plan(4);
+
+  clients[2].profile({ age: 57 });
+  clients[0].once('peer:update', function(data) {
+    t.equal(data.name, 'Fred', 'client:0 got peer:update (name === Fred)');
+    t.equal(data.age, 57, 'client:0 got peer:update (age === 57)');
+  });
+
+  clients[1].once('peer:update', function(data) {
+    t.equal(data.name, 'Fred', 'client:1 got peer:update (name === Fred)');
+    t.equal(data.age, 57, 'client:1 got peer:update (age === 57)');
   });
 });

@@ -153,6 +153,7 @@ module.exports = function(signalhost, opts) {
   var heartbeatInterval = (opts || {}).heartbeatInterval || 1000;
   var heartbeatTimeout = (opts || {}).heartbeatTimeout || heartbeatInterval * 3;
   var profile = {};
+  var announced = false;
 
   // collect the local streams
   var localStreams = [];
@@ -330,6 +331,7 @@ module.exports = function(signalhost, opts) {
     // announce and emit the local announce event
     signaller.announce(data);
     signaller.emit('local:announce', data);
+    announced = true;
   }, 0);
 
   /**
@@ -404,6 +406,13 @@ module.exports = function(signalhost, opts) {
   **/
   signaller.profile = function(data) {
     extend(profile, data);
+
+    // if we have already announced, then reannounce our profile to provide
+    // others a `peer:update` event
+    if (announced) {
+      signaller.announce(profile);
+    }
+    
     return signaller;
   };
 
