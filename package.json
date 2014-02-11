@@ -21,8 +21,8 @@
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
   "dependencies": {
-    "rtc": "~0.14.0",
-    "cog": "~0.4.1",
+    "rtc": "~0.15.0",
+    "cog": "~0.5.1",
     "rtc-signaller": "~0.18.0",
     "rtc-core": "~0.7.1"
   },
