@@ -142,7 +142,7 @@ var HEARTBEAT = new Uint8Array([0x10]);
 
 **/
 module.exports = function(signalhost, opts) {
-  var hash = location.hash.slice(1);
+  var hash = typeof location != 'undefined' && location.hash.slice(1);
   var signaller = require('rtc-signaller')(signalhost);
 
   // init configurable vars
