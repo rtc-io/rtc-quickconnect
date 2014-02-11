@@ -1,6 +1,12 @@
+var freeice = require('freeice');
 var quickconnect = require('../');
+var opts = {
+  room: 'qcexample-dctest',
+  // debug: true,
+  iceServers: freeice()
+};
 
-quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+quickconnect('http://rtc.io/switchboard/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
