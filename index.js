@@ -129,10 +129,10 @@ var HEARTBEAT = new Uint8Array([0x10]);
   [rtc.createConnection](https://github.com/rtc-io/rtc#createconnectionopts-constraints)
   function:
 
-  - `constraints`
+  - `iceServers`
 
-    Used to provide specific constraints when creating a new
-    peer connection.
+  This provides a list of ice servers that can be used to help negotiate a
+  connection between peers.
 
   #### Options for P2P negotiation
 
