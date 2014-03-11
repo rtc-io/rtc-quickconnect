@@ -43,9 +43,15 @@ http://dev.w3.org/2011/webrtc/editor/webrtc.html#dictionary-rtcdatachannelinit-m
 If in doubt, I'd recommend not passing through options.
 
 ```js
+var freeice = require('freeice');
 var quickconnect = require('rtc-quickconnect');
+var opts = {
+  room: 'qcexample-dctest',
+  // debug: true,
+  iceServers: freeice()
+};
 
-quickconnect('http://rtc.io/switchboard/', { ns: 'dctest' })
+quickconnect('http://rtc.io/switchboard/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
