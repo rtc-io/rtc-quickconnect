@@ -10,7 +10,7 @@ configuration you should drill down into lower level components of the
 
 [![NPM](https://nodei.co/npm/rtc-quickconnect.png)](https://nodei.co/npm/rtc-quickconnect/)
 
-[![unstable](http://hughsk.github.io/stability-badges/dist/unstable.svg)](http://github.com/hughsk/stability-badges)
+![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)
 
 ## Example Usage
 
@@ -220,10 +220,10 @@ Options that are passed onto the
 [rtc.createConnection](https://github.com/rtc-io/rtc#createconnectionopts-constraints)
 function:
 
-- `constraints`
+- `iceServers`
 
-  Used to provide specific constraints when creating a new
-  peer connection.
+This provides a list of ice servers that can be used to help negotiate a
+connection between peers.
 
 #### Options for P2P negotiation
 
