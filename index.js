@@ -312,7 +312,7 @@ module.exports = function(signalhost, opts) {
     signaller.emit('peer', pc, data.id, data, monitor);
 
     // once active, trigger the peer connect event
-    monitor.once('active', function() {
+    monitor.once('connected', function() {
       signaller.emit('peer:connect', pc, data.id, data);
     });
 
