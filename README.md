@@ -12,6 +12,9 @@ configuration you should drill down into lower level components of the
 
 ![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)
 
+[![Gitter chat](https://badges.gitter.im/rtc-io/discuss.png)](https://gitter.im/rtc-io/discuss)
+
+
 ## Example Usage
 
 In the simplest case you simply call quickconnect with a single string
