@@ -1,5 +1,6 @@
 MODULE_NAME := quickconnect
-REQUIRED_TOOLS := browserify uglifyjs
+REQUIRED_TOOLS := browserify uglifyjs st inotifywait
+PORT ?= 8000
 
 PHONY: dist
 
@@ -14,3 +15,8 @@ dist: $(REQUIRED_TOOLS)
 
 	@echo "minifying"
 	@uglifyjs dist/$(MODULE_NAME).js > dist/$(MODULE_NAME).min.js 2>/dev/null
+
+devmode: dist
+	st --port $(PORT) --no-cache &
+
+	while true; do inotifywait -e create -e delete -e modify -q -r *.js node_modules || make dist; done
