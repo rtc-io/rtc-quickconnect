@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>Quickconnect Bundle Test</title>
+</head>
+<body>
+<script src="../dist/quickconnect.js"></script>
+<script>
+quickconnect('http://rtc.io/switchboard/', { room: 'bundle-test' })
+  // tell quickconnect we want a datachannel called test
+  .createDataChannel('test')
+  // when the test channel is open, let us know
+  .on('test:open', function(dc, id) {
+    dc.onmessage = function(evt) {
+      console.log('peer ' + id + ' says: ' + evt.data);
+    };
+
+    console.log('test dc open for peer: ' + id);
+    dc.send('hi');
+  });
+</script>
+<body>
+</html>
