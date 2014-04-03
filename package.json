@@ -30,13 +30,13 @@
     "crel": "~1.1.1",
     "rtc-media": "~1.5.1",
     "tape": "^2.10.2",
-    "rtc-switchboard": "^0.8.1",
+    "rtc-switchboard": "^0.10.1",
     "uuid": "~1.4.1",
     "rtc-videoproc": "^0.11.0",
     "rtc-captureconfig": "~0.4.0",
     "rtc-bufferedchannel": "^0.5.0",
     "rtc-filter-grayscale": "~0.1.0",
-    "async": "~0.2.10",
+    "async": "^0.6.2",
     "freeice": "~0.2.1"
   }
 }
