@@ -27,15 +27,25 @@ test('create connector 1', function(t) {
 test('data channels opened', function(t) {
   t.plan(2);
 
-  connections[0].once('test:open', function(dc) {
-    dcs[0] = dc;
-    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
-  });
+  if (dcs[0] = connections[0].getChannel('test')) {
+    t.pass('dc:0 open');
+  }
+  else {
+    connections[0].once('test:open', function(dc) {
+      dcs[0] = dc;
+      t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+    });
+  }
 
-  connections[1].once('test:open', function(dc) {
-    dcs[1] = dc;
-    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
-  });
+  if (dcs[1] = connections[1].getChannel('test')) {
+    t.pass('dc:1 open');
+  }
+  else {
+    connections[1].once('test:open', function(dc) {
+      dcs[1] = dc;
+      t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+    });
+  }
 });
 
 test('dc 0 send', function(t) {
