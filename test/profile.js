@@ -2,11 +2,15 @@ var test = require('tape');
 var quickconnect = require('..');
 var roomId = require('uuid').v4();
 var clients = [];
+// var signallingServer = 'http://rtc.io/switchboard/';
+var signallingServer = location.origin;
+
+// require('cog/logger').enable('*');
 
 test('create test participant', function(t) {
   t.plan(1);
 
-  clients[0] = quickconnect(location.origin, { room: roomId });
+  clients[0] = quickconnect(signallingServer, { room: roomId });
   clients[0].once('local:announce', function() {
     t.pass('have locally announced');
   });
@@ -19,7 +23,7 @@ test('announce with additional profile information', function(t) {
     t.equal(data.name, 'Bob', 'client:0 got name data');
   });
 
-  clients[1] = quickconnect(location.origin, { room: roomId }).profile({ name: 'Bob' });
+  clients[1] = quickconnect(signallingServer, { room: roomId }).profile({ name: 'Bob' });
   clients[1].once('local:announce', function(data) {
     t.equal(data.name, 'Bob', 'name included in local announce');
   });
@@ -40,7 +44,7 @@ test('create additional client', function(t) {
     t.equal(data.name, 'Fred', 'client:1 got new client (Fred)');
   });
 
-  clients[2] = quickconnect(location.origin, { room: roomId }).profile({ name: 'Fred' });
+  clients[2] = quickconnect(signallingServer, { room: roomId }).profile({ name: 'Fred' });
   clients[2].once('local:announce', function() {
     t.pass('have locally announced');
   });
@@ -53,10 +57,12 @@ test('client:2 updates profile', function(t) {
   clients[0].once('peer:update', function(data) {
     t.equal(data.name, 'Fred', 'client:0 got peer:update (name === Fred)');
     t.equal(data.age, 57, 'client:0 got peer:update (age === 57)');
+    console.log('client:0 received data: ', data);
   });
 
   clients[1].once('peer:update', function(data) {
     t.equal(data.name, 'Fred', 'client:1 got peer:update (name === Fred)');
     t.equal(data.age, 57, 'client:1 got peer:update (age === 57)');
+    console.log('client:1 received data: ', data);
   });
 });
