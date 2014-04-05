@@ -163,24 +163,30 @@ module.exports = function(signalhost, opts) {
 
   // create the known data channels registry
   var channels = {};
+  var activeChannels = {};
 
   function gotPeerChannel(channel, pc, data) {
-    // create the channelOpen function
-    var emitChannelOpen = signaller.emit.bind(
-      signaller,
-      channel.label + ':open',
-      channel,
-      data.id,
-      data,
-      pc
-    );
+
+    function channelReady() {
+      // mark the channel as active
+      activeChannels[channel.label] = channel;
+
+      // trigger the %channel.label%:open event 
+      signaller.emit(
+        channel.label + ':open',
+        channel,
+        data.id,
+        data,
+        pc
+      );
+    }
 
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id, channel);
     if (channel.readyState === 'open') {
-      return emitChannelOpen();
+      return channelReady();
     }
 
-    channel.onopen = emitChannelOpen;
+    channel.onopen = channelReady;
   }
 
   function handlePeerAnnounce(data) {
@@ -355,6 +361,20 @@ module.exports = function(signalhost, opts) {
   signaller.broadcast = function(stream) {
     localStreams.push(stream);
     return signaller;
+  };
+
+
+  /**
+    #### getChannel(name)
+
+    This is an accessor method to get an **active** channel by it's label. If
+    the channel is not yet active, then this function will return `undefined`.
+    In this case you should use the `%label%:open` event handler to wait for
+    the channel.
+
+  **/
+  signaller.getChannel = function(name) {
+    return activeChannels[name];
   };
 
   /**
