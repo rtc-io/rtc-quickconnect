@@ -6,7 +6,7 @@ var clients = [];
 test('create test participant', function(t) {
   t.plan(1);
 
-  clients[0] = quickconnect(location.origin);
+  clients[0] = quickconnect(location.origin, { room: roomId });
   clients[0].once('local:announce', function() {
     t.pass('have locally announced');
   });
@@ -19,7 +19,7 @@ test('announce with additional profile information', function(t) {
     t.equal(data.name, 'Bob', 'client:0 got name data');
   });
 
-  clients[1] = quickconnect(location.origin).profile({ name: 'Bob' });
+  clients[1] = quickconnect(location.origin, { room: roomId }).profile({ name: 'Bob' });
   clients[1].once('local:announce', function(data) {
     t.equal(data.name, 'Bob', 'name included in local announce');
   });
@@ -40,7 +40,7 @@ test('create additional client', function(t) {
     t.equal(data.name, 'Fred', 'client:1 got new client (Fred)');
   });
 
-  clients[2] = quickconnect(location.origin).profile({ name: 'Fred' });
+  clients[2] = quickconnect(location.origin, { room: roomId }).profile({ name: 'Fred' });
   clients[2].once('local:announce', function() {
     t.pass('have locally announced');
   });
