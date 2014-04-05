@@ -4,10 +4,12 @@ var connections = [];
 var dcs = [];
 var room = require('uuid').v4();
 var freeice = require('freeice');
+// var signallingServer = 'http://rtc.io/switchboard/';
+var signallingServer = location.origin;
 
 test('create connector 0', function(t) {
   t.plan(3);
-  t.ok(connections[0] = quickconnect(location.origin, {
+  t.ok(connections[0] = quickconnect(signallingServer, {
     room: room,
     iceServers: freeice()
   }), 'created');
@@ -21,7 +23,7 @@ test('create connector 0', function(t) {
 
 test('create connector 1', function(t) {
   t.plan(3);
-  t.ok(connections[1] = quickconnect(location.origin, {
+  t.ok(connections[1] = quickconnect(signallingServer, {
     room: room,
     iceServers: freeice()
   }), 'created');
@@ -52,7 +54,7 @@ test('data channels opened', function(t) {
   else {
     connections[1].once('test:open', function(dc) {
       dcs[1] = dc;
-      t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+      t.equal(dc.readyState, 'open', 'connection test dc 1 open');
     });
   }
 });
