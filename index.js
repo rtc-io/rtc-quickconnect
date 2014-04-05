@@ -183,70 +183,7 @@ module.exports = function(signalhost, opts) {
     channel.onopen = emitChannelOpen;
   }
 
-  function initHeartbeat(channel, pc, data) {
-    var hbTimeoutTimer;
-    var hbTimer;
-
-    function timeoutConnection() {
-      // console.log(Date.now() + ', connection with ' + data.id + ' timed out');
-
-      // trigger a peer disconnect event
-      signaller.emit('peer:disconnect', data.id);
-
-      // trigger close events for each of the channels
-      Object.keys(channels).forEach(function(channel) {
-        signaller.emit(channel + ':close');
-      });
-
-      // clear the peer reference
-      peers[data.id] = undefined;
-
-      // stop trying to send heartbeat messages
-      clearInterval(hbTimer);
-    }
-
-    // console.log('created heartbeat channel for peer: ' + data.id);
-
-    // start monitoring using the heartbeat channel to keep tabs on our
-    // peers availability
-    channel.onmessage = function(evt) {
-      // console.log(Date.now() + ', ' + data.id + ': ' + evt.data);
-
-      // console.log('received hearbeat message: ' + evt.data)
-      clearTimeout(hbTimeoutTimer);
-      hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
-
-      // emit the heartbeat for the appropriate connection
-      signaller.emit('hb:' + data.id);
-    };
-
-    hbTimer  = setInterval(function() {
-      // if the channel is not yet, open then abort
-      if (channel.readyState !== 'open') {
-        // TODO: clear the interval if we have previously been sending
-        // messages
-        return;
-      }
-
-      channel.send(HEARTBEAT);
-    }, heartbeatInterval);
-  }
-
-  // if the room is not defined, then generate the room name
-  if (! room) {
-    // if the hash is not assigned, then create a random hash value
-    if (! hash) {
-      hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
-    }
-
-    room = ns + '#' + hash;
-  }
-
-  if (debugging) {
-    rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
-  }
-
-  signaller.on('peer:announce', function(data) {
+  function handlePeerAnnounce(data) {
     var pc;
     var monitor;
 
@@ -322,7 +259,72 @@ module.exports = function(signalhost, opts) {
     if (signaller.isMaster(data.id)) {
       monitor.createOffer();
     }
-  });
+  }
+
+  function initHeartbeat(channel, pc, data) {
+    var hbTimeoutTimer;
+    var hbTimer;
+
+    function timeoutConnection() {
+      // console.log(Date.now() + ', connection with ' + data.id + ' timed out');
+
+      // trigger a peer disconnect event
+      signaller.emit('peer:disconnect', data.id);
+
+      // trigger close events for each of the channels
+      Object.keys(channels).forEach(function(channel) {
+        signaller.emit(channel + ':close');
+      });
+
+      // clear the peer reference
+      peers[data.id] = undefined;
+
+      // stop trying to send heartbeat messages
+      clearInterval(hbTimer);
+    }
+
+    // console.log('created heartbeat channel for peer: ' + data.id);
+
+    // start monitoring using the heartbeat channel to keep tabs on our
+    // peers availability
+    channel.onmessage = function(evt) {
+      // console.log(Date.now() + ', ' + data.id + ': ' + evt.data);
+
+      // console.log('received hearbeat message: ' + evt.data)
+      clearTimeout(hbTimeoutTimer);
+      hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
+
+      // emit the heartbeat for the appropriate connection
+      signaller.emit('hb:' + data.id);
+    };
+
+    hbTimer  = setInterval(function() {
+      // if the channel is not yet, open then abort
+      if (channel.readyState !== 'open') {
+        // TODO: clear the interval if we have previously been sending
+        // messages
+        return;
+      }
+
+      channel.send(HEARTBEAT);
+    }, heartbeatInterval);
+  }
+
+  // if the room is not defined, then generate the room name
+  if (! room) {
+    // if the hash is not assigned, then create a random hash value
+    if (! hash) {
+      hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
+    }
+
+    room = ns + '#' + hash;
+  }
+
+  if (debugging) {
+    rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
+  }
+
+  signaller.on('peer:announce', handlePeerAnnounce);
 
   // announce ourselves to our new friend
   setTimeout(function() {
