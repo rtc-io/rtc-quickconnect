@@ -3,10 +3,15 @@ var quickconnect = require('..');
 var connections = [];
 var dcs = [];
 var room = require('uuid').v4();
+var freeice = require('freeice');
 
 test('create connector 0', function(t) {
   t.plan(3);
-  t.ok(connections[0] = quickconnect(location.origin, { room: room }), 'created');
+  t.ok(connections[0] = quickconnect(location.origin, {
+    room: room,
+    iceServers: freeice()
+  }), 'created');
+
   t.equal(typeof connections[0].createDataChannel, 'function', 'has a createDataChannel function');
 
   // create the data channel
@@ -16,7 +21,11 @@ test('create connector 0', function(t) {
 
 test('create connector 1', function(t) {
   t.plan(3);
-  t.ok(connections[1] = quickconnect(location.origin, { room: room }), 'created');
+  t.ok(connections[1] = quickconnect(location.origin, {
+    room: room,
+    iceServers: freeice()
+  }), 'created');
+
   t.equal(typeof connections[1].createDataChannel, 'function', 'has a createDataChannel function');
 
   // create the data channel
