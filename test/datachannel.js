@@ -7,6 +7,8 @@ var freeice = require('freeice');
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
+// require('cog/logger').enable('*');
+
 test('create connector 0', function(t) {
   t.plan(3);
   t.ok(connections[0] = quickconnect(signallingServer, {
@@ -18,7 +20,7 @@ test('create connector 0', function(t) {
 
   // create the data channel
   connections[0].createDataChannel('test');
-  t.pass('dc created');
+  setTimeout(t.pass.bind(t, 'dc created'), 500);
 });
 
 test('create connector 1', function(t) {
@@ -32,7 +34,7 @@ test('create connector 1', function(t) {
 
   // create the data channel
   connections[1].createDataChannel('test');
-  t.pass('dc created');
+  setTimeout(t.pass.bind(t, 'dc created'), 500);
 });
 
 test('data channels opened', function(t) {
