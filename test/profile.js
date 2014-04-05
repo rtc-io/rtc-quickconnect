@@ -57,12 +57,10 @@ test('client:2 updates profile', function(t) {
   clients[0].once('peer:update', function(data) {
     t.equal(data.name, 'Fred', 'client:0 got peer:update (name === Fred)');
     t.equal(data.age, 57, 'client:0 got peer:update (age === 57)');
-    console.log('client:0 received data: ', data);
   });
 
   clients[1].once('peer:update', function(data) {
     t.equal(data.name, 'Fred', 'client:1 got peer:update (name === Fred)');
     t.equal(data.age, 57, 'client:1 got peer:update (age === 57)');
-    console.log('client:1 received data: ', data);
   });
 });

@@ -8,8 +8,6 @@ var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var reTrailingSlash = /\/$/;
-var CHANNEL_HEARTBEAT = '__heartbeat';
-var HEARTBEAT = new Uint8Array([0x10]);
 
 /**
   # rtc-quickconnect
@@ -69,28 +67,6 @@ var HEARTBEAT = new Uint8Array([0x10]);
   a little.  If you need something more stable, why not consider deploying
   an instance of the switchboard yourself - it's pretty easy :)
 
-  ## Handling Peer Disconnection
-
-  __NOTE:__ This functionality is experimental and still in testing, it is
-  recommended that you continue to use the `peer:leave` events at this stage.
-
-  Since version `0.11` the following events are also emitted by quickconnect
-  objects:
-
-  - `peer:disconnect`
-  - `%label%:close` where `%label%` is the label of the channel
-     you provided in a `createDataChannel` call.
-
-  Basically the `peer:disconnect` can be used as a more accurate version
-  of the `peer:leave` message.  While the `peer:leave` event triggers when
-  the background signaller disconnects, the `peer:disconnect` event is
-  trigger when the actual WebRTC peer connection is closed.
-
-  At present (due to limited browser support for handling peer close events
-  and the like) this is implemented by creating a heartbeat data channel
-  which sends messages on a regular basis between the peers.  When these
-  messages are stopped being received the connection is considered closed.
-
   ## Reference
 
   ```
@@ -149,9 +125,6 @@ module.exports = function(signalhost, opts) {
   var ns = (opts || {}).ns || '';
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
-  var disableHeartbeat = (opts || {}).disableHeartbeat;
-  var heartbeatInterval = (opts || {}).heartbeatInterval || 1000;
-  var heartbeatTimeout = (opts || {}).heartbeatTimeout || heartbeatInterval * 3;
   var profile = {};
   var announced = false;
 
@@ -212,17 +185,6 @@ module.exports = function(signalhost, opts) {
     if (signaller.isMaster(data.id)) {
       debug('is master, creating data channels: ', Object.keys(channels));
 
-      // unless the heartbeat is disabled then create a heartbeat datachannel
-      if (! disableHeartbeat) {
-        initHeartbeat(
-          pc.createDataChannel(CHANNEL_HEARTBEAT, {
-            ordered: false
-          }),
-          pc,
-          data
-        );
-      }
-
       // create the channels
       Object.keys(channels).forEach(function(label) {
         gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
@@ -237,12 +199,7 @@ module.exports = function(signalhost, opts) {
           return;
         }
 
-        // if the channel is the heartbeat, then init the heartbeat
-        if (channel.label === CHANNEL_HEARTBEAT) {
-          initHeartbeat(channel, pc, data);
-        }
-        // otherwise, if this is a known channel, initialise it
-        else if (channels[channel.label] !== undefined) {
+        if (channels[channel.label] !== undefined) {
           gotPeerChannel(channel, pc, data);
         }
       };
@@ -265,55 +222,6 @@ module.exports = function(signalhost, opts) {
     if (signaller.isMaster(data.id)) {
       monitor.createOffer();
     }
-  }
-
-  function initHeartbeat(channel, pc, data) {
-    var hbTimeoutTimer;
-    var hbTimer;
-
-    function timeoutConnection() {
-      // console.log(Date.now() + ', connection with ' + data.id + ' timed out');
-
-      // trigger a peer disconnect event
-      signaller.emit('peer:disconnect', data.id);
-
-      // trigger close events for each of the channels
-      Object.keys(channels).forEach(function(channel) {
-        signaller.emit(channel + ':close');
-      });
-
-      // clear the peer reference
-      peers[data.id] = undefined;
-
-      // stop trying to send heartbeat messages
-      clearInterval(hbTimer);
-    }
-
-    // console.log('created heartbeat channel for peer: ' + data.id);
-
-    // start monitoring using the heartbeat channel to keep tabs on our
-    // peers availability
-    channel.onmessage = function(evt) {
-      // console.log(Date.now() + ', ' + data.id + ': ' + evt.data);
-
-      // console.log('received hearbeat message: ' + evt.data)
-      clearTimeout(hbTimeoutTimer);
-      hbTimeoutTimer = setTimeout(timeoutConnection, heartbeatTimeout);
-
-      // emit the heartbeat for the appropriate connection
-      signaller.emit('hb:' + data.id);
-    };
-
-    hbTimer  = setInterval(function() {
-      // if the channel is not yet, open then abort
-      if (channel.readyState !== 'open') {
-        // TODO: clear the interval if we have previously been sending
-        // messages
-        return;
-      }
-
-      channel.send(HEARTBEAT);
-    }, heartbeatInterval);
   }
 
   // if the room is not defined, then generate the room name
