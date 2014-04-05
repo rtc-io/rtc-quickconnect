@@ -37,6 +37,7 @@
     "rtc-bufferedchannel": "^0.5.0",
     "rtc-filter-grayscale": "~0.1.0",
     "async": "^0.6.2",
-    "freeice": "~0.2.1"
+    "freeice": "~0.2.1",
+    "zuul": "^1.6.2"
   }
 }
