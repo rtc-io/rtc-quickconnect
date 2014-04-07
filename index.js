@@ -307,6 +307,9 @@ module.exports = function(signalhost, opts) {
     // reset the peer references
     peers = {};
     activeChannels = {};
+
+    // call the underlying signaller.leave (for which close is an alias)
+    signaller.leave();
   };
 
   /**
