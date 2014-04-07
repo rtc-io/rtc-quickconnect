@@ -164,28 +164,6 @@ just be aware that we use this for our testing so it may go up and down
 a little.  If you need something more stable, why not consider deploying
 an instance of the switchboard yourself - it's pretty easy :)
 
-## Handling Peer Disconnection
-
-__NOTE:__ This functionality is experimental and still in testing, it is
-recommended that you continue to use the `peer:leave` events at this stage.
-
-Since version `0.11` the following events are also emitted by quickconnect
-objects:
-
-- `peer:disconnect`
-- `%label%:close` where `%label%` is the label of the channel
-   you provided in a `createDataChannel` call.
-
-Basically the `peer:disconnect` can be used as a more accurate version
-of the `peer:leave` message.  While the `peer:leave` event triggers when
-the background signaller disconnects, the `peer:disconnect` event is
-trigger when the actual WebRTC peer connection is closed.
-
-At present (due to limited browser support for handling peer close events
-and the like) this is implemented by creating a heartbeat data channel
-which sends messages on a regular basis between the peers.  When these
-messages are stopped being received the connection is considered closed.
-
 ## Reference
 
 ```
@@ -245,6 +223,13 @@ a lot simpler.
 
 Add the stream to the set of local streams that we will broadcast
 to other peers.
+
+#### getChannel(targetId, name)
+
+This is an accessor method to get an **active** channel by it's label. If
+the channel is not yet active, then this function will return `undefined`.
+In this case you should use the `%label%:open` event handler to wait for
+the channel.
 
 #### close()
 
