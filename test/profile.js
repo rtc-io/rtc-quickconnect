@@ -64,3 +64,12 @@ test('client:2 updates profile', function(t) {
     t.equal(data.age, 57, 'client:1 got peer:update (age === 57)');
   });
 });
+
+test('release references', function(t) {
+  t.plan(1);
+  clients.splice(0).forEach(function(conn, index) {
+    conn.close();
+  });
+
+  t.pass('done');
+});

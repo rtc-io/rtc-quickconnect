@@ -58,3 +58,13 @@ test('dc 1 send', function(t) {
   t.plan(1);
   dcs[1].send('hi');
 });
+
+test('release references', function(t) {
+  t.plan(1);
+  connections.splice(0).forEach(function(conn, index) {
+    conn.close();
+  });
+
+  dcs = [];
+  t.pass('done');
+});
