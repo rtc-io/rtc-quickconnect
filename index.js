@@ -141,8 +141,14 @@ module.exports = function(signalhost, opts) {
   function gotPeerChannel(channel, pc, data) {
 
     function channelReady() {
-      // mark the channel as active
-      activeChannels[channel.label] = channel;
+      var channels = activeChannels[data.id];
+
+      if (! channels) {
+        channels = activeChannels[data.id] = {};
+      }
+
+      // save the channel
+      channels[channel.label] = channel;
 
       // trigger the %channel.label%:open event 
       signaller.emit(
@@ -273,7 +279,7 @@ module.exports = function(signalhost, opts) {
 
 
   /**
-    #### getChannel(name)
+    #### getChannel(targetId, name)
 
     This is an accessor method to get an **active** channel by it's label. If
     the channel is not yet active, then this function will return `undefined`.
@@ -281,8 +287,8 @@ module.exports = function(signalhost, opts) {
     the channel.
 
   **/
-  signaller.getChannel = function(name) {
-    return activeChannels[name];
+  signaller.getChannel = function(targetId, name) {
+    return (activeChannels[targetId] || {})[name];
   };
 
   /**
@@ -300,6 +306,7 @@ module.exports = function(signalhost, opts) {
 
     // reset the peer references
     peers = {};
+    activeChannels = {};
   };
 
   /**

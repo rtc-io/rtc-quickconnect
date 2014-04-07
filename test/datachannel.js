@@ -39,8 +39,7 @@ test('create connector 1', function(t) {
 
 test('data channels opened', function(t) {
   t.plan(2);
-
-  if (dcs[0] = connections[0].getChannel('test')) {
+  if (dcs[0] = connections[0].getChannel(connections[1].id, 'test')) {
     t.pass('dc:0 open');
   }
   else {
@@ -50,7 +49,7 @@ test('data channels opened', function(t) {
     });
   }
 
-  if (dcs[1] = connections[1].getChannel('test')) {
+  if (dcs[1] = connections[1].getChannel(connections[0].id, 'test')) {
     t.pass('dc:1 open');
   }
   else {
@@ -79,4 +78,14 @@ test('dc 1 send', function(t) {
 
   t.plan(1);
   dcs[1].send('hi');
+});
+
+test('release references', function(t) {
+  t.plan(1);
+  connections.splice(0).forEach(function(conn, index) {
+    conn.close();
+  });
+
+  dcs = [];
+  t.pass('done');
 });
