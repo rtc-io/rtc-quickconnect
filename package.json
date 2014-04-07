@@ -27,9 +27,9 @@
     "rtc-core": "^1"
   },
   "devDependencies": {
-    "crel": "~1.1.1",
-    "rtc-media": "~1.5.1",
-    "tape": "^2.10.2",
+    "crel": "^1",
+    "rtc-media": "^1",
+    "tape": "^2",
     "rtc-switchboard": "^0.10.1",
     "uuid": "~1.4.1",
     "rtc-videoproc": "^0.11.0",
@@ -38,6 +38,6 @@
     "rtc-filter-grayscale": "~0.1.0",
     "async": "^0.6.2",
     "freeice": "~0.2.1",
-    "zuul": "^1.6.2"
+    "zuul": "^1"
   }
 }
