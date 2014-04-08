@@ -12,6 +12,7 @@ uname -a
 cat /etc/lsb-release
 
 sudo apt-get update --fix-missing
+sudo apt-get install -qq --force-yes xvfb
 
 # Install python-imaging from the environment rather then build it.
 # If the below fails, pip will build it via the requirements.txt
@@ -23,6 +24,7 @@ sudo apt-get update --fix-missing
 
 export VERSION=$(echo $BROWSER | sed -e's/[^-]*-//')
 export BROWSER=$(echo $BROWSER | sed -e's/-.*//')
+export DISPLAY=:99.0
 
 echo BROWSER=$BROWSER
 echo VERSION=$VERSION

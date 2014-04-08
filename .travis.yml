@@ -29,6 +29,7 @@ notifications:
 
 before_install:
   - ./test/scripts/.travis-setup.sh
+  - sh -e /etc/init.d/xvfb start
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
