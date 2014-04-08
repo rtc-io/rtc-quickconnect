@@ -24,7 +24,8 @@
     "rtc": "~0.19.0",
     "cog": "^0.5.2",
     "rtc-signaller": "^1",
-    "rtc-core": "^1"
+    "rtc-core": "^1",
+    "collections": "^1"
   },
   "devDependencies": {
     "crel": "^1",

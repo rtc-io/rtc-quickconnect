@@ -7,6 +7,7 @@ var debug = rtc.logger('rtc-quickconnect');
 var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
+var FastMap = require('collections/fast-map');
 var reTrailingSlash = /\/$/;
 
 /**
@@ -131,24 +132,51 @@ module.exports = function(signalhost, opts) {
   // collect the local streams
   var localStreams = [];
 
-  // create the peers registry
-  var peers = {};
+  // create the calls map
+  var calls = new FastMap();
 
   // create the known data channels registry
   var channels = {};
-  var activeChannels = {};
+
+  function callEnd(id) {
+    var data = calls.get(id);
+
+    // if we have no data, then return
+    data.channels.keys().forEach(function(channelName) {
+      signaller.emit(
+        channelName + ':close',
+        data.channels.get(channelName),
+        id
+      );
+    });
+
+    // delete the call data
+    calls.delete(id);
+
+    // trigger the call:ended event
+    signaller.emit('call:ended', id, data.pc);
+  }
+
+  function callStart(id, pc, data) {
+    // add this connection to the calls list
+    calls.set(id, {
+      pc: pc,
+      channels: new FastMap()
+    });
+
+    // flag that the call has started
+    signaller.emit('call:started', id, pc, data);
+  }
 
   function gotPeerChannel(channel, pc, data) {
 
     function channelReady() {
-      var channels = activeChannels[data.id];
-
-      if (! channels) {
-        channels = activeChannels[data.id] = {};
-      }
+      var call = calls.get(data.id);
 
       // save the channel
-      channels[channel.label] = channel;
+      if (call) {
+        call.channels.set(channel.label, channel);
+      }
 
       // trigger the %channel.label%:open event 
       signaller.emit(
@@ -158,6 +186,9 @@ module.exports = function(signalhost, opts) {
         data,
         pc
       );
+
+      // decouple the channel.onopen listener
+      channel.onpen = null;
     }
 
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id, channel);
@@ -178,7 +209,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // create a peer connection
-    pc = peers[data.id] = rtc.createConnection(opts, (opts || {}).constraints);
+    pc = rtc.createConnection(opts, (opts || {}).constraints);
 
     // add the local streams
     localStreams.forEach(function(stream) {
@@ -214,13 +245,12 @@ module.exports = function(signalhost, opts) {
     // couple the connections
     monitor = rtc.couple(pc, data.id, signaller, opts);
 
-    // emit the peer event as per <= rtc-quickconnect@0.7
-    signaller.emit('peer', pc, data.id, data, monitor);
-
     // once active, trigger the peer connect event
     monitor.once('connected', function() {
-      signaller.emit('peer:connect', pc, data.id, data);
+      callStart(data.id, pc, data);
     });
+
+    monitor.once('closed', callEnd.bind(null, data.id));
 
     // if we are the master connnection, create the offer
     // NOTE: this only really for the sake of politeness, as rtc couple
@@ -245,6 +275,7 @@ module.exports = function(signalhost, opts) {
   }
 
   signaller.on('peer:announce', handlePeerAnnounce);
+  signaller.on('peer:leave', callEnd);
 
   // announce ourselves to our new friend
   setTimeout(function() {
@@ -288,7 +319,9 @@ module.exports = function(signalhost, opts) {
 
   **/
   signaller.getChannel = function(targetId, name) {
-    return (activeChannels[targetId] || {})[name];
+    var call = calls.get(targetId);
+
+    return call && call.channels.get(name);
   };
 
   /**
@@ -298,15 +331,8 @@ module.exports = function(signalhost, opts) {
     peer connections.
   **/
   signaller.close = function() {
-    Object.keys(peers).forEach(function(id) {
-      if (peers[id]) {
-        peers[id].close();
-      }
-    });
-
-    // reset the peer references
-    peers = {};
-    activeChannels = {};
+    // end each of the active calls
+    calls.keys().forEach(callEnd);
 
     // call the underlying signaller.leave (for which close is an alias)
     signaller.leave();
