@@ -5,7 +5,7 @@ var connections = [];
 var dcs = [];
 var roomId = uuid.v4();
 
-require('cog/logger').enable('rtc-quickconnect');
+// require('cog/logger').enable('rtc-quickconnect');
 
 test('create connection:0 (id = "a")', function(t) {
   var qc;
@@ -42,7 +42,7 @@ test('wait for data channels', function(t) {
     t.pass('dc:0 open');
   }
   else {
-    connections[0].once('t2:open', function(id, dc) {
+    connections[0].once('channel:opened:t2', function(id, dc) {
       dcs[0] = dc;
       t.equal(dc.readyState, 'open', 'connection test dc 0 open');
     });
@@ -52,7 +52,7 @@ test('wait for data channels', function(t) {
     t.pass('dc:1 open');
   }
   else {
-    connections[1].once('t2:open', function(id, dc) {
+    connections[1].once('channel:opened:t2', function(id, dc) {
       dcs[1] = dc;
       t.equal(dc.readyState, 'open', 'connection test dc 1 open');
     });

@@ -44,7 +44,7 @@ test('data channels opened', function(t) {
     t.pass('dc:0 open');
   }
   else {
-    connections[0].once('test:open', function(id, dc) {
+    connections[0].once('channel:opened:test', function(id, dc) {
       dcs[0] = dc;
       t.equal(dc.readyState, 'open', 'connection test dc 0 open');
     });
@@ -54,7 +54,7 @@ test('data channels opened', function(t) {
     t.pass('dc:1 open');
   }
   else {
-    connections[1].once('test:open', function(id, dc) {
+    connections[1].once('channel:opened:test', function(id, dc) {
       dcs[1] = dc;
       t.equal(dc.readyState, 'open', 'connection test dc 1 open');
     });

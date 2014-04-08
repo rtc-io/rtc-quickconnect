@@ -35,7 +35,7 @@ test('create a datachannel on each of the connections', function(t) {
   t.plan(connections.length * 2);
 
   connections.forEach(function(connection, index) {
-    connection.once('test:open', function(id, dc) {
+    connection.once('channel:opened:test', function(id, dc) {
       t.pass('received data channel for connection:' + index);
       dcs[index] = dc;
     });

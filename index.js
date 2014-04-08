@@ -246,9 +246,10 @@ module.exports = function(signalhost, opts) {
 
     function channelReady() {
       var call = calls.get(data.id);
-      debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
+      var args = [ data.id, channel, data, pc ];
 
       // decouple the channel.onopen listener
+      debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
       clearInterval(channelMonitor);
       channel.onopen = null;
 
@@ -258,13 +259,15 @@ module.exports = function(signalhost, opts) {
       }
 
       // trigger the %channel.label%:open event 
-      debug('triggering "' + channel.label + ':open" event')
-      signaller.emit(
-        channel.label + ':open',
-        data.id,
-        channel,
-        data,
-        pc
+      debug('triggering channel:opened events for channel: ' + channel.label);
+
+      // emit the plain channel:opened event
+      signaller.emit.apply(signaller, ['channel:opened'].concat(args));
+
+      // emit the channel:opened:%label% eve
+      signaller.emit.apply(
+        signaller,
+        ['channel:opened:' + channel.label].concat(args)
       );
     }
 

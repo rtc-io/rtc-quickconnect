@@ -2,7 +2,7 @@ var quickconnect = require('../');
 
 quickconnect('http://rtc.io/switchboard/', { room: 'dctest-room' })
   .addChannel('test')
-  .on('test:open', function(id, dc) {
+  .on('channel:opened:test', function(id, dc) {
     dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
     };
