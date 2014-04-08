@@ -245,6 +245,7 @@ module.exports = function(signalhost, opts) {
 
     function channelReady() {
       var call = calls.get(data.id);
+      debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
 
       // save the channel
       if (call) {
@@ -252,6 +253,7 @@ module.exports = function(signalhost, opts) {
       }
 
       // trigger the %channel.label%:open event 
+      debug('triggering "' + channel.label + ':open" event')
       signaller.emit(
         channel.label + ':open',
         data.id,
@@ -261,10 +263,10 @@ module.exports = function(signalhost, opts) {
       );
 
       // decouple the channel.onopen listener
-      channel.onpen = null;
+      channel.onopen = null;
     }
 
-    debug('channel ' + channel.label + ' discovered for peer: ' + data.id, channel);
+    debug('channel ' + channel.label + ' discovered for peer: ' + data.id);
     if (channel.readyState === 'open') {
       return channelReady();
     }
