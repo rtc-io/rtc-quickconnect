@@ -5,7 +5,7 @@ var connections = [];
 var dcs = [];
 var roomId = uuid.v4();
 
-// require('cog/logger').enable('rtc-quickconnect');
+require('cog/logger').enable('rtc-quickconnect');
 
 test('create connection:0 (id = "a")', function(t) {
   var qc;
