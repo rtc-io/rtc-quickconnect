@@ -12,10 +12,14 @@ uname -a
 cat /etc/lsb-release
 
 sudo apt-get update --fix-missing
-sudo apt-get install -qq --force-yes xvfb
+
+export VERSION=$(echo $BROWSER | sed -e's/[^-]*-//')
+export BROWSER=$(echo $BROWSER | sed -e's/-.*//')
+
+echo BROWSER=$BROWSER
+echo VERSION=$VERSION
 
 sudo ln -sf $(which true) $(which xdg-desktop-menu)
-echo "Getting $BROWSER_VERSION of $BROWSER"
 
 case $BROWSER in
 android)
@@ -27,7 +31,8 @@ android)
   ;;
 
 chrome)
-  export CHROME=google-chrome-${BROWSER_VERSION}_current_amd64.deb
+  echo "Getting $VERSION of $BROWSER"
+  export CHROME=google-chrome-${VERSION}_current_amd64.deb
   wget https://dl.google.com/linux/direct/$CHROME
   sudo dpkg --install $CHROME || sudo apt-get -f install
   which google-chrome
@@ -50,7 +55,7 @@ chrome)
 
 firefox)
   sudo rm -f /usr/local/bin/firefox
-  case $BROWSER_VERSION in
+  case $VERSION in
   beta)
     yes "\n" | sudo add-apt-repository -y ppa:mozillateam/firefox-next
     ;;
