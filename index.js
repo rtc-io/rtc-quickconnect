@@ -370,6 +370,21 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
+    #### reactive()
+
+    Flag that this session will be a reactive connection.
+    
+  **/
+  signaller.reactive = function() {
+    // add the reactive flag
+    opts = opts || {};
+    opts.reactive = true;
+
+    // chain
+    return signaller;
+  };
+
+  /**
     #### profile(data)
 
     Update the profile data with the attached information, so when 
