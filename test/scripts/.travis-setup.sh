@@ -13,12 +13,6 @@ cat /etc/lsb-release
 
 sudo apt-get update --fix-missing
 
-export VERSION=$(echo $BROWSER | sed -e's/[^-]*-//')
-export BROWSER=$(echo $BROWSER | sed -e's/-.*//')
-
-echo BROWSER=$BROWSER
-echo VERSION=$VERSION
-
 case $BROWSER in
 android)
   sudo apt-get install -qq --force-yes \
@@ -29,8 +23,8 @@ android)
   ;;
 
 chrome)
-  echo "Getting $VERSION of $BROWSER"
-  export CHROME=google-chrome-${VERSION}_current_amd64.deb
+  echo "Getting $BVER of $BROWSER"
+  export CHROME=google-chrome-${BVER}_current_amd64.deb
   wget https://dl.google.com/linux/direct/$CHROME
   sudo dpkg --install $CHROME || sudo apt-get -f install
   which google-chrome
@@ -53,7 +47,7 @@ chrome)
 
 firefox)
   sudo rm -f /usr/local/bin/firefox
-  case $VERSION in
+  case $BVER in
   beta)
     yes "\n" | sudo add-apt-repository -y ppa:mozillateam/firefox-next
     ;;

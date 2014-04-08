@@ -10,9 +10,9 @@ env:
   matrix:
     # - MODE='check'
     # - BROWSER=Android-Chrome ARGS=''
-    - BROWSER=chrome-stable
-    - BROWSER=chrome-beta
-    - BROWSER=chrome-unstable
+    - BROWSER=chrome BVER=stable
+    - BROWSER=chrome BVER=beta
+    - BROWSER=chrome BVER=unstable
     # - BROWSER=Firefox-stable ARGS='-x -b Firefox -u'
     # - BROWSER=Firefox-beta ARGS='-x -b Firefox -u'
     # - BROWSER=Firefox-aurora ARGS='-x -b Firefox -u'
