@@ -3,7 +3,7 @@ node_js:
 - 0.10
 
 before_install:
-  - ./test/scripts/install_chrome.sh
+  - ./test/scripts/install-chrome.sh
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
