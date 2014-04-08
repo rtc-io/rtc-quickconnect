@@ -131,13 +131,29 @@ module.exports = function(signalhost, opts) {
   var announced = false;
 
   // collect the local streams
-  var localStreams = [];
+  var localStreams = new FastMap();
 
   // create the calls map
   var calls = new FastMap();
 
   // create the known data channels registry
   var channels = {};
+
+  function callCreate(id, pc, data) {
+    calls.set(id, {
+      pc: pc,
+      channels: new FastMap(),
+      data: data
+    });
+
+    pc.onaddstream = function(evt) {
+      signaller.emit('stream:added', id, evt.stream);
+    };
+
+    pc.onremovestream = function(evt) {
+      signaller.emit('stream:removed', id, evt.stream);
+    };
+  }
 
   function callEnd(id) {
     var data = calls.get(id);
@@ -181,8 +197,8 @@ module.exports = function(signalhost, opts) {
       // trigger the %channel.label%:open event 
       signaller.emit(
         channel.label + ':open',
-        channel,
         data.id,
+        channel,
         data,
         pc
       );
@@ -212,13 +228,10 @@ module.exports = function(signalhost, opts) {
     pc = rtc.createConnection(opts, (opts || {}).constraints);
 
     // add this connection to the calls list
-    calls.set(data.id, {
-      pc: pc,
-      channels: new FastMap()
-    });
+    callCreate(data.id, pc, data);
 
     // add the local streams
-    localStreams.forEach(function(stream) {
+    localStreams.values().forEach(function(stream) {
       pc.addStream(stream);
     });
 
@@ -230,7 +243,7 @@ module.exports = function(signalhost, opts) {
 
       // create the channels
       Object.keys(channels).forEach(function(label) {
-        gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
+       gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
       });
     }
     else {
@@ -310,9 +323,30 @@ module.exports = function(signalhost, opts) {
     to other peers.
 
   **/
-  signaller.broadcast = function(stream) {
-    localStreams.push(stream);
-    return signaller;
+  signaller.broadcast = function(label, stream) {
+    var textLabel = typeof label == 'string' || (label instanceof String);
+
+    function attach(stream) {
+      // save the stream to the known local streams
+      localStreams.set(label, stream);
+
+      // if we have any active calls, then add the stream
+      calls.values().forEach(function(data) {
+        data.pc.addStream(stream);
+      });
+
+      return signaller;
+    }
+
+    // if the label is not a string and we have no stream defined,
+    // then it will likely be a stream so we need to remap args
+    if ((! textLabel) && (! stream)) {
+      stream = label;
+      label = 'main';
+    }
+
+    // if we have a stream, then attach now otherwise defer
+    return stream ? attach(stream) : attach;
   };
 
 
@@ -364,8 +398,21 @@ module.exports = function(signalhost, opts) {
 
   **/
   signaller.createDataChannel = function(label, opts) {
+    // create a channel on all existing calls
+    calls.keys().forEach(function(peerId) {
+      var call = calls.get(peerId);
+      var dc;
+
+      // if we are the master connection, create the data channel
+      if (call && call.pc && signaller.isMaster(peerId)) {
+        dc = call.pc.createDataChannel(label, opts);
+        gotPeerChannel(dc, call.pc, call.data);
+      }
+    });
+
     // save the data channel opts in the local channels dictionary
     channels[label] = opts || null;
+
     return signaller;
   };
 
@@ -373,7 +420,7 @@ module.exports = function(signalhost, opts) {
     #### reactive()
 
     Flag that this session will be a reactive connection.
-    
+
   **/
   signaller.reactive = function() {
     // add the reactive flag
