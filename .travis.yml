@@ -8,7 +8,7 @@ env:
   - secure: HOP1T0wgGVaKgmCkFXhc+kjMdeb0ExORiRf2y+XUY3GPfPuMzNKoi2S63kAvBkaSEc9qlAUpSvmfbGcBoeNzOET+WbjtG/1LWGlmXRXbg9HoqupveQYmI/8RDIT1f3Y1ZLpc+zeFnp//UQ0Fx8pY1yYA+RQjbpBJO3lhaGrqE+M=
 
   matrix:
-    - MODE='check'
+    # - MODE='check'
     # - BROWSER=Android-Chrome ARGS=''
     - BROWSER=Chrome-stable ARGS='-x -b Chrome -u'
     - BROWSER=Chrome-beta ARGS='-x -b Chrome -u'
@@ -27,7 +27,7 @@ notifications:
   - damon.oehlman@nicta.com.au
   irc: irc.freenode.org#rtc.io
 
-install:
+before_install:
   - ./test/scripts/.travis-setup.sh
 
 after_failure:
