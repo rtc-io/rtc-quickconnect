@@ -24,7 +24,6 @@ sudo apt-get install -qq --force-yes xvfb
 
 export VERSION=$(echo $BROWSER | sed -e's/[^-]*-//')
 export BROWSER=$(echo $BROWSER | sed -e's/-.*//')
-export DISPLAY=:99.0
 
 echo BROWSER=$BROWSER
 echo VERSION=$VERSION

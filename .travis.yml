@@ -29,6 +29,7 @@ notifications:
 
 before_install:
   - ./test/scripts/.travis-setup.sh
+  - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
 after_failure:
