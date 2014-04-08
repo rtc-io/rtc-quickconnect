@@ -76,7 +76,12 @@ var reTrailingSlash = /\/$/;
 
   - `channel:closed => function(id, label)`
 
+    Emitted when the channel has been closed, works when a connection has
+    been closed or the channel itself has been closed.
+
   - `channel:closed:%label% => function(id, label)`
+
+    The label specific equivalent of `channel:closed`.
 
   ### Stream Level Events
 
@@ -215,7 +220,7 @@ module.exports = function(signalhost, opts) {
       return;
     }
 
-    console.log('ending call to: ' + id);
+    debug('ending call to: ' + id);
 
     // if we have no data, then return
     data.channels.keys().forEach(function(channelName) {
