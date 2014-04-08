@@ -3,6 +3,7 @@
 
 var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc');
+var cleanup = require('rtc/cleanup');
 var debug = rtc.logger('rtc-quickconnect');
 var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
@@ -141,6 +142,13 @@ module.exports = function(signalhost, opts) {
   function callEnd(id) {
     var data = calls.get(id);
 
+    // if we have no data, then do nothing
+    if (! data) {
+      return;
+    }
+
+    console.log('ending call to: ' + id);
+
     // if we have no data, then return
     data.channels.keys().forEach(function(channelName) {
       signaller.emit(
@@ -150,22 +158,14 @@ module.exports = function(signalhost, opts) {
       );
     });
 
+    // ensure the peer connection is properly cleaned up
+    cleanup(data.pc);
+
     // delete the call data
     calls.delete(id);
 
     // trigger the call:ended event
     signaller.emit('call:ended', id, data.pc);
-  }
-
-  function callStart(id, pc, data) {
-    // add this connection to the calls list
-    calls.set(id, {
-      pc: pc,
-      channels: new FastMap()
-    });
-
-    // flag that the call has started
-    signaller.emit('call:started', id, pc, data);
   }
 
   function gotPeerChannel(channel, pc, data) {
@@ -211,6 +211,12 @@ module.exports = function(signalhost, opts) {
     // create a peer connection
     pc = rtc.createConnection(opts, (opts || {}).constraints);
 
+    // add this connection to the calls list
+    calls.set(data.id, {
+      pc: pc,
+      channels: new FastMap()
+    });
+
     // add the local streams
     localStreams.forEach(function(stream) {
       pc.addStream(stream);
@@ -247,7 +253,8 @@ module.exports = function(signalhost, opts) {
 
     // once active, trigger the peer connect event
     monitor.once('connected', function() {
-      callStart(data.id, pc, data);
+      // flag that the call has started
+      signaller.emit('call:started', data.id, pc, data);
     });
 
     monitor.once('closed', callEnd.bind(null, data.id));
