@@ -4,7 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
-    "test": "testling -x ./test/run-chrome.sh && zuul -- test/all.js",
+    "test": "testling -x ./test/scripts/run-chrome.sh",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
