@@ -21,7 +21,7 @@
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
   "dependencies": {
-    "rtc": "^0.20.0",
+    "rtc": "^0.20.1",
     "cog": "^0.5.2",
     "rtc-signaller": "^1",
     "rtc-core": "^1",
@@ -39,6 +39,11 @@
     "rtc-filter-grayscale": "~0.1.0",
     "async": "^0.6.2",
     "freeice": "~0.2.1",
-    "zuul": "^1"
+    "zuul": "^1",
+    "testling": "^1.6.1"
+  },
+  "testling": {
+    "files": "test/all.js",
+    "server": "test/server.js"
   }
 }
