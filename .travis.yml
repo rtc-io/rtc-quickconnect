@@ -29,8 +29,7 @@ notifications:
 before_install:
   - ./test/scripts/.travis-setup.sh
   - export DISPLAY=:99.0
-  - export XVFBRES="1280x1024x16"
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 $XVFBRES"
+  - sh -e /etc/init.d/xvfb start
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
