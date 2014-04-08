@@ -242,10 +242,15 @@ module.exports = function(signalhost, opts) {
   }
 
   function gotPeerChannel(channel, pc, data) {
+    var channelMonitor;
 
     function channelReady() {
       var call = calls.get(data.id);
       debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
+
+      // decouple the channel.onopen listener
+      clearInterval(channelMonitor);
+      channel.onopen = null;
 
       // save the channel
       if (call) {
@@ -261,9 +266,6 @@ module.exports = function(signalhost, opts) {
         data,
         pc
       );
-
-      // decouple the channel.onopen listener
-      channel.onopen = null;
     }
 
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id);
@@ -273,6 +275,14 @@ module.exports = function(signalhost, opts) {
 
     debug('channel not ready, current state = ' + channel.readyState);
     channel.onopen = channelReady;
+
+    // monitor the channel open (don't trust the channel open event just yet)
+    channelMonitor = setInterval(function() {
+      debug('checking channel state, current state = ' + channel.readyState);
+      if (channel.readyState === 'open') {
+        channelReady();
+      }
+    }, 500);
   }
 
   function handlePeerAnnounce(data) {
