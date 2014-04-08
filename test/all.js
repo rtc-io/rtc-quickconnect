@@ -2,7 +2,7 @@ var detect = require('rtc/detect');
 var isTestling = typeof __testlingConsole != 'undefined';
 
 // if we are running in testling then run the media tests
-if (isTestling) {
+if (isTestling && (! detect.moz)) {
   require('./media');
 
   // if (! detect.moz) {
