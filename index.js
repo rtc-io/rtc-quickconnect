@@ -271,6 +271,7 @@ module.exports = function(signalhost, opts) {
       return channelReady();
     }
 
+    debug('channel not ready, current state = ' + channel.readyState);
     channel.onopen = channelReady;
   }
 
