@@ -3,7 +3,7 @@ var quickconnect = require('..');
 var connections = [];
 var dcs = [];
 var room = require('uuid').v4();
-var freeice = require('freeice');
+// var freeice = require('freeice');
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
@@ -12,8 +12,7 @@ var signallingServer = location.origin;
 test('create connector 0', function(t) {
   t.plan(3);
   t.ok(connections[0] = quickconnect(signallingServer, {
-    room: room,
-    iceServers: freeice()
+    room: room
   }), 'created');
 
   t.equal(typeof connections[0].createDataChannel, 'function', 'has a createDataChannel function');
@@ -26,8 +25,7 @@ test('create connector 0', function(t) {
 test('create connector 1', function(t) {
   t.plan(3);
   t.ok(connections[1] = quickconnect(signallingServer, {
-    room: room,
-    iceServers: freeice()
+    room: room
   }), 'created');
 
   t.equal(typeof connections[1].createDataChannel, 'function', 'has a createDataChannel function');
