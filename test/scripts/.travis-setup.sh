@@ -14,24 +14,11 @@ cat /etc/lsb-release
 sudo apt-get update --fix-missing
 sudo apt-get install -qq --force-yes xvfb
 
-# Install python-imaging from the environment rather then build it.
-# If the below fails, pip will build it via the requirements.txt
-# sudo apt-get install python-imaging
-# VIRTUAL_ENV_site_packages=$(echo $VIRTUAL_ENV/lib/*/site-packages)
-# VIRTUAL_ENV_python_version=$(echo $VIRTUAL_ENV_site_packages | sed -e's@.*/\(.*\)/site-packages@\1@')
-# ln -s /usr/lib/$VIRTUAL_ENV_python_version/dist-packages/PIL.pth $VIRTUAL_ENV_site_packages/PIL.pth
-# ln -s /usr/lib/$VIRTUAL_ENV_python_version/dist-packages/PIL $VIRTUAL_ENV_site_packages/PIL
-
-export VERSION=$(echo $BROWSER | sed -e's/[^-]*-//')
-export BROWSER=$(echo $BROWSER | sed -e's/-.*//')
-
-echo BROWSER=$BROWSER
-echo VERSION=$VERSION
-
 sudo ln -sf $(which true) $(which xdg-desktop-menu)
+echo "Getting $BROWSER_VERSION of $BROWSER"
 
 case $BROWSER in
-Android)
+android)
   sudo apt-get install -qq --force-yes \
     libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 \
     libstdc++6:i386 lib32z1 libreadline6-dev:i386 \
@@ -39,9 +26,8 @@ Android)
   bash tools/android/setup.sh
   ;;
 
-Chrome)
-  echo "Getting $VERSION of $BROWSER"
-  export CHROME=google-chrome-${VERSION}_current_amd64.deb
+chrome)
+  export CHROME=google-chrome-${BROWSER_VERSION}_current_amd64.deb
   wget https://dl.google.com/linux/direct/$CHROME
   sudo dpkg --install $CHROME || sudo apt-get -f install
   which google-chrome
@@ -62,9 +48,9 @@ Chrome)
   google-chrome --version
   ;;
 
-Firefox)
+firefox)
   sudo rm -f /usr/local/bin/firefox
-  case $VERSION in
+  case $BROWSER_VERSION in
   beta)
     yes "\n" | sudo add-apt-repository -y ppa:mozillateam/firefox-next
     ;;
