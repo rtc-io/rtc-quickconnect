@@ -59,7 +59,7 @@ quickconnect('http://rtc.io/switchboard/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
-  .on('test:open', function(dc, id) {
+  .on('test:open', function(id, dc) {
     dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
     };
@@ -99,8 +99,6 @@ var localMedia = media();
 // once media is captured, connect
 localMedia.once('capture', function(stream) {
   quickconnect('http://rtc.io/switchboard/', { room: 'conftest' })
-    // create a chat channel
-    .createDataChannel('chat')
     // broadcast our captured media to other participants in the room
     .broadcast(stream)
     // when a peer is connected (and active) pass it to us for use
@@ -109,15 +107,6 @@ localMedia.once('capture', function(stream) {
 
       // render the remote streams
       pc.getRemoteStreams().forEach(renderRemote(id));
-    })
-    .on('chat:open', function(dc) {
-      dc.onmessage = function(evt) {
-        console.log('received chat message: ' + evt.data);
-      };
-
-      setInterval(function() {
-        dc.send('hello');
-      }, 1000);
     })
     // when a peer leaves, remove teh media
     .on('call:ended', function(id) {
@@ -251,6 +240,10 @@ var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
 
 Then when the data channel is ready for use, a `test:open` event would
 be emitted by `qc`.
+
+#### reactive()
+
+Flag that this session will be a reactive connection.
 
 #### profile(data)
 
