@@ -24,9 +24,9 @@ argument which tells quickconnect which server to use for signaling:
 ```js
 var quickconnect = require('rtc-quickconnect');
 
-quickconnect('http://rtc.io/switchboard/')
-  .on('peer', function(pc, id, data, monitor) {
-    console.log('got a new friend, id: ' + id, pc);
+quickconnect('http://rtc.io/switchboard/', { room: 'qc-simple-demo' })
+  .on('call:started', function(id, pc, data) {
+    console.log('we have a new connection to: ' + id);
   });
 ```
 
@@ -104,7 +104,7 @@ localMedia.once('capture', function(stream) {
     // broadcast our captured media to other participants in the room
     .broadcast(stream)
     // when a peer is connected (and active) pass it to us for use
-    .on('peer:connect', function(pc, id, data) {
+    .on('call:started', function(id, pc, data) {
       console.log('peer connected: ', id);
 
       // render the remote streams
@@ -120,7 +120,7 @@ localMedia.once('capture', function(stream) {
       }, 1000);
     })
     // when a peer leaves, remove teh media
-    .on('peer:leave', function(id) {
+    .on('call:ended', function(id) {
       // remove media for the target peer from the dom
       (peerMedia[id] || []).splice(0).forEach(function(el) {
         el.parentNode.removeChild(el);
