@@ -21,7 +21,7 @@ localMedia.once('capture', function(stream) {
     // broadcast our captured media to other participants in the room
     .broadcast(stream)
     // when a peer is connected (and active) pass it to us for use
-    .on('peer:connect', function(pc, id, data) {
+    .on('call:started', function(id, pc, data) {
       console.log('peer connected: ', id);
 
       // render the remote streams
@@ -37,7 +37,7 @@ localMedia.once('capture', function(stream) {
       }, 1000);
     })
     // when a peer leaves, remove teh media
-    .on('peer:leave', function(id) {
+    .on('call:ended', function(id) {
       // remove media for the target peer from the dom
       (peerMedia[id] || []).splice(0).forEach(function(el) {
         el.parentNode.removeChild(el);

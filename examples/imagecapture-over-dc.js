@@ -56,7 +56,7 @@ quickconnect('http://rtc.io/switchboard/', { room: 'demo-snaps' })
     document.body.appendChild(images[id]);
   })
   // when a peer leaves, clean up their image
-  .on('peer:leave', function(id) {
+  .on('call:ended', function(id) {
     if (images[id]) {
       document.body.removeChild(images[id]);
       images[id] = undefined;

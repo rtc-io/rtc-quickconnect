@@ -1,6 +1,6 @@
 var quickconnect = require('../');
 
-quickconnect('http://rtc.io/switchboard/')
-  .on('peer', function(pc, id, data, monitor) {
-    console.log('got a new friend, id: ' + id, pc);
+quickconnect('http://rtc.io/switchboard/', { room: 'qc-simple-demo' })
+  .on('call:started', function(id, pc, data) {
+    console.log('we have a new connection to: ' + id);
   });
