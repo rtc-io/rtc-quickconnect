@@ -27,16 +27,25 @@ test('create connection:1 (id = "b")', function(t) {
 
 test('wait for data channels', function(t) {
   t.plan(2);
+  if (dcs[0] = connections[0].getChannel(connections[1].id, 'test')) {
+    t.pass('dc:0 open');
+  }
+  else {
+    connections[0].once('test:open', function(id, dc) {
+      dcs[0] = dc;
+      t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+    });
+  }
 
-  connections[0].once('test:open', function(id, dc) {
-    dcs[0] = dc;
-    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
-  });
-
-  connections[1].once('test:open', function(id, dc) {
-    dcs[1] = dc;
-    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
-  });
+  if (dcs[1] = connections[1].getChannel(connections[0].id, 'test')) {
+    t.pass('dc:1 open');
+  }
+  else {
+    connections[1].once('test:open', function(id, dc) {
+      dcs[1] = dc;
+      t.equal(dc.readyState, 'open', 'connection test dc 1 open');
+    });
+  }
 });
 
 test('dc 0 send', function(t) {
