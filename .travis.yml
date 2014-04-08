@@ -11,8 +11,8 @@ env:
     # - MODE='check'
     # - BROWSER=Android-Chrome ARGS=''
     - BROWSER=Chrome-stable
-    # - BROWSER=Chrome-beta
-    # - BROWSER=Chrome-unstable
+    - BROWSER=Chrome-beta
+    - BROWSER=Chrome-unstable
     # - BROWSER=Firefox-stable ARGS='-x -b Firefox -u'
     # - BROWSER=Firefox-beta ARGS='-x -b Firefox -u'
     # - BROWSER=Firefox-aurora ARGS='-x -b Firefox -u'
