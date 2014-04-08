@@ -9,7 +9,7 @@ quickconnect('http://rtc.io/switchboard/', { room: 'bundle-test' })
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
-  .on('test:open', function(dc, id) {
+  .on('test:open', function(id, dc) {
     dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
     };

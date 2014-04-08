@@ -38,7 +38,7 @@ quickconnect('http://rtc.io/switchboard/', { room: 'demo-snaps' })
   // tell quickconnect we want a datachannel called test
   .createDataChannel('snaps')
   // when the test channel is open, let us know
-  .on('snaps:open', function(dc, id) {
+  .on('snaps:open', function(id, dc) {
     var channel = bc(dc);
 
     channel.on('data', function(data) {
