@@ -27,7 +27,10 @@ test('create connection:1 (id = "b")', function(t) {
 
 test('wait for data channels', function(t) {
   t.plan(2);
-  if (dcs[0] = connections[0].getChannel(connections[1].id, 'test')) {
+  dcs[0] = connections[0].getChannel(connections[1].id, 'test');
+  dcs[1] = connections[1].getChannel(connections[0].id, 'test');
+
+  if (dcs[0]) {
     t.pass('dc:0 open');
   }
   else {
@@ -37,7 +40,7 @@ test('wait for data channels', function(t) {
     });
   }
 
-  if (dcs[1] = connections[1].getChannel(connections[0].id, 'test')) {
+  if (dcs[1]) {
     t.pass('dc:1 open');
   }
   else {

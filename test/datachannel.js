@@ -37,7 +37,10 @@ test('create connector 1', function(t) {
 
 test('data channels opened', function(t) {
   t.plan(2);
-  if (dcs[0] = connections[0].getChannel(connections[1].id, 'test')) {
+  dcs[0] = connections[0].getChannel(connections[1].id, 'test');
+  dcs[1] = connections[1].getChannel(connections[0].id, 'test');
+
+  if (dcs[0]) {
     t.pass('dc:0 open');
   }
   else {
@@ -47,7 +50,7 @@ test('data channels opened', function(t) {
     });
   }
 
-  if (dcs[1] = connections[1].getChannel(connections[0].id, 'test')) {
+  if (dcs[1]) {
     t.pass('dc:1 open');
   }
   else {
@@ -56,6 +59,14 @@ test('data channels opened', function(t) {
       t.equal(dc.readyState, 'open', 'connection test dc 1 open');
     });
   }
+});
+
+test('can getChannel', function(t) {
+  var dc;
+
+  t.plan(1);
+  dc = connections[0].getChannel(connections[1].id, 'test');
+  t.ok(dc, 'found data channel');
 });
 
 test('dc 0 send', function(t) {
