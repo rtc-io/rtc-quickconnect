@@ -17,7 +17,8 @@ require('./datachannel');
 require('./custom-id');
 
 if (! detect.moz) {
-  require('./reactive');
+  require('./event-stream-added');
 
+  require('./reactive');
   require('./reactive-event-stream-added');
 }
