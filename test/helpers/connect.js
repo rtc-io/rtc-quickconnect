@@ -22,7 +22,7 @@ module.exports = function(test, prefix, opts) {
       room: roomId
     });
 
-    qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
+    t.pass('connection:0 created');
   });
 
   // if we are using moz then we are going to need data channels to make
@@ -41,6 +41,11 @@ module.exports = function(test, prefix, opts) {
     });
   }
 
+  test(prefix + 'connection:0 connect to signaller', function(t) {
+    t.plan(1);
+    connections[0].once('connected', t.pass.bind(t, 'connected to signalling server'));
+  });
+
   test(prefix + 'create connection:1', function(t) {
     var qc;
 
@@ -49,7 +54,7 @@ module.exports = function(test, prefix, opts) {
       room: roomId
     });
 
-    qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
+    t.pass('connection:1 created');
   });
 
   if (detect.moz && (! opts.nodc)) {
@@ -65,6 +70,11 @@ module.exports = function(test, prefix, opts) {
       opts.prep1(t, connections[1]);
     });
   }
+
+  test(prefix + 'connection:1 connect to signaller', function(t) {
+    t.plan(1);
+    connections[1].once('connected', t.pass.bind(t, 'connected to signalling server'));
+  });
 
   test(prefix + 'calls started', function(t) {
     t.plan(connections.length * 2);
