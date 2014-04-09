@@ -78,9 +78,32 @@ between this quickconnect instance a remote peer.
 
 - `channel:closed => function(id, label)`
 
+  Emitted when the channel has been closed, works when a connection has
+  been closed or the channel itself has been closed.
+
 - `channel:closed:%label% => function(id, label)`
 
+  The label specific equivalent of `channel:closed`.
+
 ### Stream Level Events
+
+- `stream:added => function(id, label, stream, data)`
+
+  The `stream:added` event is triggered when an `RTCPeerConnection` has
+  successfully been established to another peer that contains remote
+  streams.  Additionally, if you are using quickconnect in it's "reactive"
+  mode then you will also receive `stream:added` events as streams are
+  dynamically added to the connection by the remote peer.
+
+- `stream:added:%label% => function(id, label, stream, data)`
+
+  This is the label specific equivalent of the standard `stream:added`
+  event, which is useful when you are only interested in a specific stream
+  that might be broadcast by the remote peer.
+
+- `stream:removed => function(id, label)`
+
+- `stream:removed:%label% => function(id, label)`
 
 ## Example Usage (using data channels)
 
@@ -111,7 +134,7 @@ quickconnect('http://rtc.io/switchboard/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
-  .on('test:open', function(id, dc) {
+  .on('channel:opened:test', function(id, dc) {
     dc.onmessage = function(evt) {
       console.log('peer ' + id + ' says: ' + evt.data);
     };
