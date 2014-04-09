@@ -85,6 +85,24 @@ var reTrailingSlash = /\/$/;
 
   ### Stream Level Events
 
+  - `stream:added => function(id, label, stream, data)`
+
+    The `stream:added` event is triggered when an `RTCPeerConnection` has
+    successfully been established to another peer that contains remote
+    streams.  Additionally, if you are using quickconnect in it's "reactive"
+    mode then you will also receive `stream:added` events as streams are
+    dynamically added to the connection by the remote peer.
+
+  - `stream:added:%label% => function(id, label, stream, data)`
+
+    This is the label specific equivalent of the standard `stream:added`
+    event, which is useful when you are only interested in a specific stream
+    that might be broadcast by the remote peer.
+
+  - `stream:removed => function(id, label)`
+
+  - `stream:removed:%label% => function(id, label)`
+
   ## Example Usage (using data channels)
 
   When working with WebRTC data channels, you can call the `createDataChannel`
@@ -200,16 +218,9 @@ module.exports = function(signalhost, opts) {
     calls.set(id, {
       pc: pc,
       channels: new FastMap(),
-      data: data
+      data: data,
+      streams: new FastMap()
     });
-
-    pc.onaddstream = function(evt) {
-      signaller.emit('stream:added', id, evt.stream);
-    };
-
-    pc.onremovestream = function(evt) {
-      signaller.emit('stream:removed', id, evt.stream);
-    };
   }
 
   function callEnd(id) {
@@ -239,6 +250,50 @@ module.exports = function(signalhost, opts) {
 
     // trigger the call:ended event
     signaller.emit('call:ended', id, data.pc);
+  }
+
+  function callStart(id, pc, data) {
+    pc.onaddstream = createStreamAddHandler(id);
+    pc.onremovestream = createStreamRemoveHandler(id);
+
+    signaller.emit('call:started', id, pc, data);
+  }
+
+  function createStreamAddHandler(id) {
+    var call = calls.get(id);
+
+    function emitStream(label, stream) {
+      debug('peer ' + id + ' added stream label: ' + label);
+      signaller.emit('stream:added', id, label, stream);
+      signaller.emit('stream:added:' + label, id, label, stream);
+    }
+
+    return function(evt) {
+      var streamId = evt.stream.id;
+      var label = streamId ? (call.streams.get(streamId) || '') : 'main';
+
+      // if we have a label, then invoke the events
+      if (label) {
+        return emitStream(label, evt.stream);
+      }
+
+      // if we don't have a label, then watch the call.streams until we do
+      call.streams.addMapChangeListener(function waitForLabel() {
+        // attempt to get the label again
+        label = call.streams.get(streamId) || '';
+        if (label) {
+          call.streams.removeMapChangeListener(waitForLabel);
+          emitStream(label, evt.stream);
+        }
+      });
+    };
+  }
+
+  function createStreamRemoveHandler(id) {
+    return function(evt) {
+      debug('peer ' + id + ' removed stream');
+      signaller.emit('stream:removed', id, 'main', evt.stream);
+    };
   }
 
   function gotPeerChannel(channel, pc, data) {
@@ -338,11 +393,7 @@ module.exports = function(signalhost, opts) {
     monitor = rtc.couple(pc, data.id, signaller, opts);
 
     // once active, trigger the peer connect event
-    monitor.once('connected', function() {
-      // flag that the call has started
-      signaller.emit('call:started', data.id, pc, data);
-    });
-
+    monitor.once('connected', callStart.bind(null, data.id, pc, data))
     monitor.once('closed', callEnd.bind(null, data.id));
 
     // if we are the master connnection, create the offer
@@ -351,6 +402,22 @@ module.exports = function(signalhost, opts) {
     if (signaller.isMaster(data.id)) {
       monitor.createOffer();
     }
+  }
+
+  function handleStreamLabel(streamId, label, peer) {
+    var call = calls.get(peer.id);
+
+    // if we have a call, then associate the stream label with the specified id
+    if (call) {
+      debug('received stream label "' + label + '" for peer: ' + peer.id);
+      call.streams.set(streamId, label);
+    }
+  }
+
+  function shareStreamLabel(stream, label) {
+    return function(id) {
+      signaller.to(id).send('/stream:label', stream.id, label);
+    };
   }
 
   // if the room is not defined, then generate the room name
@@ -367,6 +434,7 @@ module.exports = function(signalhost, opts) {
     rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
   }
 
+  signaller.on('stream:label', handleStreamLabel);
   signaller.on('peer:announce', handlePeerAnnounce);
   signaller.on('peer:leave', callEnd);
 
@@ -402,6 +470,9 @@ module.exports = function(signalhost, opts) {
     function attach(stream) {
       // save the stream to the known local streams
       localStreams.set(label, stream);
+
+      // tell each of the active calls we have stream
+      calls.keys().forEach(shareStreamLabel(stream, label));
 
       // if we have any active calls, then add the stream
       calls.values().forEach(function(data) {
