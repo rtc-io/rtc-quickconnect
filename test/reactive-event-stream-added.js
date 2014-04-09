@@ -1,5 +1,5 @@
 var test = require('tape');
-var connections = require('./helpers/reactive-connections')(test, 'stream:added tests');
+var connections = require('./helpers/connect-reactive')(test, 'stream:added tests');
 var media = require('rtc-media');
 var localStream;
 
