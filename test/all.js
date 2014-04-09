@@ -1,6 +1,7 @@
 var detect = require('rtc/detect');
 var isTestling = typeof __testlingConsole != 'undefined';
 
+
 // if we are running in testling then run the media tests
 if (isTestling) {
   require('./media');
@@ -17,4 +18,6 @@ require('./custom-id');
 
 if (! detect.moz) {
   require('./reactive');
+
+  require('./reactive-event-stream-added');
 }
