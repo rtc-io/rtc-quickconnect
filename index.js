@@ -253,40 +253,25 @@ module.exports = function(signalhost, opts) {
   }
 
   function callStart(id, pc, data) {
+    var streams = [].concat(pc.getRemoteStreams());
+
     pc.onaddstream = createStreamAddHandler(id);
     pc.onremovestream = createStreamRemoveHandler(id);
 
+    debug(signaller.id + ' - ' + id + ' call start: ' + streams.length + ' streams');
     signaller.emit('call:started', id, pc, data);
+
+    // examine the existing remote streams after a short delay
+    setTimeout(function() {
+      // iterate through any remote streams
+      streams.forEach(receiveRemoteStream(id));
+    }, 10);
   }
 
   function createStreamAddHandler(id) {
-    var call = calls.get(id);
-
-    function emitStream(label, stream) {
-      debug('peer ' + id + ' added stream label: ' + label);
-      signaller.emit('stream:added', id, label, stream);
-      signaller.emit('stream:added:' + label, id, label, stream);
-    }
-
     return function(evt) {
-      var streamId = evt.stream.id;
-      var label = streamId ? (call.streams.get(streamId) || '') : 'main';
-
-      // if we have a label, then invoke the events
-      if (label) {
-        return emitStream(label, evt.stream);
-      }
-
-      // if we don't have a label, then watch the call.streams until we do
-      call.streams.addMapChangeListener(function waitForLabel() {
-        // attempt to get the label again
-        label = call.streams.get(streamId) || '';
-        if (label) {
-          call.streams.removeMapChangeListener(waitForLabel);
-          emitStream(label, evt.stream);
-        }
-      });
-    };
+      receiveRemoteStream(id)(evt.stream);
+    }
   }
 
   function createStreamRemoveHandler(id) {
@@ -359,7 +344,14 @@ module.exports = function(signalhost, opts) {
     callCreate(data.id, pc, data);
 
     // add the local streams
-    localStreams.values().forEach(function(stream) {
+    localStreams.keys().forEach(function(label) {
+      var stream = localStreams.get(label);
+
+      // tell the remote connections about this stream
+      calls.keys().forEach(shareStreamLabel(stream, label));
+
+      // add the stream to the peer connection
+      debug('adding prepared stream "' + label + '" to pc for: ' + data.id);
       pc.addStream(stream);
     });
 
@@ -414,6 +406,38 @@ module.exports = function(signalhost, opts) {
     }
   }
 
+  function receiveRemoteStream(id) {
+    var call = calls.get(id);
+
+    function emitStream(label, stream) {
+      debug('peer ' + id + ' added stream label: ' + label);
+      signaller.emit('stream:added', id, label, stream);
+      signaller.emit('stream:added:' + label, id, label, stream);
+    }
+
+    return function(stream) {
+      var streamId = stream.id;
+      var label = streamId ? (call.streams.get(streamId) || '') : 'main';
+
+      debug('received remote stream from peer: ' + id + ', label: ' + label);
+
+      // if we have a label, then invoke the events
+      if (label) {
+        return emitStream(label, stream);
+      }
+
+      // if we don't have a label, then watch the call.streams until we do
+      call.streams.addMapChangeListener(function waitForLabel() {
+        // attempt to get the label again
+        label = call.streams.get(streamId) || '';
+        if (label) {
+          call.streams.removeMapChangeListener(waitForLabel);
+          emitStream(label, stream);
+        }
+      });
+    };
+  }
+
   function shareStreamLabel(stream, label) {
     return function(id) {
       signaller.to(id).send('/stream:label', stream.id, label);
@@ -464,7 +488,7 @@ module.exports = function(signalhost, opts) {
     to other peers.
 
   **/
-  signaller.broadcast = function(label, stream) {
+  signaller.broadcast = signaller.addStream = function(label, stream) {
     var textLabel = typeof label == 'string' || (label instanceof String);
 
     function attach(stream) {
