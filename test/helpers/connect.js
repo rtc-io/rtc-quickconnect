@@ -24,12 +24,6 @@ module.exports = function(test, prefix, opts) {
     qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
   });
 
-  test(prefix + 'mark connection:0 reactive', function(t) {
-    t.plan(1);
-    connections[0].reactive();
-    t.pass('done');
-  });
-
   if (opts && opts.prep0) {
     test('prepare connection:0', function(t) {
       opts.prep0(t, connections[0]);
@@ -45,12 +39,6 @@ module.exports = function(test, prefix, opts) {
     });
 
     qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
-  });
-
-  test(prefix + 'mark connection:1 reactive', function(t) {
-    t.plan(1);
-    connections[1].reactive();
-    t.pass('done');
   });
 
   if (opts && opts.prep1) {
