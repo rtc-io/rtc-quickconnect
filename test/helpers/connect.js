@@ -1,5 +1,6 @@
 var quickconnect = require('../../');
 var defaults = require('cog/defaults');
+var detect = require('rtc/detect');
 
 module.exports = function(test, prefix, opts) {
   var connections = [];
@@ -24,6 +25,16 @@ module.exports = function(test, prefix, opts) {
     qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
   });
 
+  // if we are using moz then we are going to need data channels to make
+  // this work if no streams are added
+  if (detect.moz && (! opts.nodc)) {
+    test('creating dummy data channel for connection:0', function(t) {
+      t.plan(1);
+      connections[0].createDataChannel('__dummy');
+      t.pass('data channel defined');
+    });
+  }
+
   if (opts && opts.prep0) {
     test('prepare connection:0', function(t) {
       opts.prep0(t, connections[0]);
@@ -40,6 +51,14 @@ module.exports = function(test, prefix, opts) {
 
     qc.once('connected', t.pass.bind(t, 'connected to signalling server'));
   });
+
+  if (detect.moz && (! opts.nodc)) {
+    test('creating dummy data channel for connection:1', function(t) {
+      t.plan(1);
+      connections[1].createDataChannel('__dummy');
+      t.pass('data channel defined');
+    });
+  }
 
   if (opts && opts.prep1) {
     test('prepare connection:1', function(t) {
