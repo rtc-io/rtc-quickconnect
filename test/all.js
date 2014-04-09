@@ -6,7 +6,7 @@ if (isTestling) {
   require('./media');
 
   if (! detect.moz) {
-    require('./media-reactive');
+    // require('./media-reactive');
   }
 }
 
