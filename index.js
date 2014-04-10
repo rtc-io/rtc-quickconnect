@@ -278,7 +278,7 @@ module.exports = function(signalhost, opts) {
   function createStreamRemoveHandler(id) {
     return function(evt) {
       debug('peer ' + id + ' removed stream');
-      signaller.emit('stream:removed', id, 'main', evt.stream);
+      signaller.emit('stream:removed', id, evt.stream);
     };
   }
 
@@ -530,6 +530,33 @@ module.exports = function(signalhost, opts) {
     opts.reactive = true;
 
     // chain
+    return signaller;
+  };
+
+  /**
+    #### removeStream
+
+    ```
+    removeStream(stream:MediaStream)
+    ```
+
+    Remove the specified stream from both the local streams that are to 
+    be connected to new peers, and also from any active calls.
+
+  **/
+  signaller.removeStream = function(stream) {
+    var localIndex = localStreams.indexOf(stream);
+
+    // remove the stream from any active calls
+    calls.values().forEach(function(call) {
+      call.pc.removeStream(stream);
+    });
+
+    // remove the stream from the localStreams array
+    if (localIndex >= 0) {
+      localStreams.splice(localIndex, 1);
+    }
+
     return signaller;
   };
 
