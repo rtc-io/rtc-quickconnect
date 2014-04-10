@@ -219,17 +219,17 @@ module.exports = function(signalhost, opts) {
   }
 
   function callEnd(id) {
-    var data = calls.get(id);
+    var call = calls.get(id);
 
     // if we have no data, then do nothing
-    if (! data) {
+    if (! call) {
       return;
     }
 
     debug('ending call to: ' + id);
 
     // if we have no data, then return
-    data.channels.keys().forEach(function(channelName) {
+    call.channels.keys().forEach(function(channelName) {
       signaller.emit(
         channelName + ':close',
         data.channels.get(channelName),
@@ -237,14 +237,21 @@ module.exports = function(signalhost, opts) {
       );
     });
 
+    // trigger stream:removed events for each of the remotestreams in the pc
+    if (call.pc) {
+      call.pc.getRemoteStreams().forEach(function(stream) {
+        signaller.emit('stream:removed', id, stream);
+      });
+    }
+
+    // trigger the call:ended event
+    signaller.emit('call:ended', id, call.pc);
+
     // ensure the peer connection is properly cleaned up
-    cleanup(data.pc);
+    cleanup(call.pc);
 
     // delete the call data
     calls.delete(id);
-
-    // trigger the call:ended event
-    signaller.emit('call:ended', id, data.pc);
   }
 
   function callStart(id, pc, data) {
