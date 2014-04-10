@@ -557,7 +557,6 @@ module.exports = function(signalhost, opts) {
     var channel;
 
     function waitForChannel() {
-      console.log(arguments);
       call.channels.removeMapChangeListener(waitForChannel, label);
       callback(null, call.channels.get(label));
     }
