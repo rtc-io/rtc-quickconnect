@@ -204,7 +204,7 @@ module.exports = function(signalhost, opts) {
   var localStreams = [];
 
   // create the calls map
-  var calls = new FastMap();
+  var calls = signaller.calls = new FastMap();
 
   // create the known data channels registry
   var channels = {};
