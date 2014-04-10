@@ -85,7 +85,7 @@ var reTrailingSlash = /\/$/;
 
   ### Stream Level Events
 
-  - `stream:added => function(id, label, stream, data)`
+  - `stream:added => function(id, stream, data)`
 
     The `stream:added` event is triggered when an `RTCPeerConnection` has
     successfully been established to another peer that contains remote
@@ -93,15 +93,10 @@ var reTrailingSlash = /\/$/;
     mode then you will also receive `stream:added` events as streams are
     dynamically added to the connection by the remote peer.
 
-  - `stream:added:%label% => function(id, label, stream, data)`
+  - `stream:removed => function(id)`
 
-    This is the label specific equivalent of the standard `stream:added`
-    event, which is useful when you are only interested in a specific stream
-    that might be broadcast by the remote peer.
-
-  - `stream:removed => function(id, label)`
-
-  - `stream:removed:%label% => function(id, label)`
+    As per the `stream:added` event but triggered when a stream has been
+    removed.
 
   ## Example Usage (using data channels)
 
