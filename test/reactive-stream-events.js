@@ -34,3 +34,24 @@ test('connection:0 removeStream', function(t) {
 
   connections[0].removeStream(localStream);
 });
+
+test('broadcast stream from 1 --> 0', function(t) {
+  t.plan(2);
+  connections[0].once('stream:added', function(id, stream) {
+    t.equal(id, connections[1].id, 'id matched expected');
+    t.ok(stream instanceof MediaStream, 'got stream');
+  });
+
+  connections[1].addStream(localStream);
+});
+
+test('stream:removed triggered when connection:1 leaves', function(t) {
+  t.plan(2);
+
+  connections[0].once('stream:removed', function(id, stream) {
+    t.equal(id, connections[1].id, 'id matched expected');
+    t.ok(stream instanceof MediaStream, 'got stream');
+  });
+
+  connections[1].leave();
+});
