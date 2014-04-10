@@ -206,7 +206,7 @@ module.exports = function(signalhost, opts) {
   var announced = false;
 
   // collect the local streams
-  var localStreams = new FastMap();
+  var localStreams = [];
 
   // create the calls map
   var calls = new FastMap();
@@ -218,8 +218,7 @@ module.exports = function(signalhost, opts) {
     calls.set(id, {
       pc: pc,
       channels: new FastMap(),
-      data: data,
-      streams: new FastMap()
+      data: data
     });
   }
 
@@ -262,13 +261,15 @@ module.exports = function(signalhost, opts) {
     signaller.emit('call:started', id, pc, data);
 
     // examine the existing remote streams after a short delay
-    setTimeout(function() {
+    process.nextTick(function() {
       // iterate through any remote streams
       streams.forEach(receiveRemoteStream(id));
-    }, 10);
+    });
   }
 
   function createStreamAddHandler(id) {
+    var call = calls.get(id);
+
     return function(evt) {
       receiveRemoteStream(id)(evt.stream);
     }
@@ -344,14 +345,7 @@ module.exports = function(signalhost, opts) {
     callCreate(data.id, pc, data);
 
     // add the local streams
-    localStreams.keys().forEach(function(label) {
-      var stream = localStreams.get(label);
-
-      // tell the remote connections about this stream
-      calls.keys().forEach(shareStreamLabel(stream, label));
-
-      // add the stream to the peer connection
-      debug('adding prepared stream "' + label + '" to pc for: ' + data.id);
+    localStreams.forEach(function(stream, idx) {
       pc.addStream(stream);
     });
 
@@ -382,6 +376,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // couple the connections
+    debug('coupling ' + signaller.id + ' to ' + data.id);
     monitor = rtc.couple(pc, data.id, signaller, opts);
 
     // once active, trigger the peer connect event
@@ -396,51 +391,15 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function handleStreamLabel(streamId, label, peer) {
-    var call = calls.get(peer.id);
-
-    // if we have a call, then associate the stream label with the specified id
-    if (call) {
-      debug('received stream label "' + label + '" for peer: ' + peer.id);
-      call.streams.set(streamId, label);
-    }
+  function invalidCall(peerId) {
+    return new Error('No active call for peer: ' + peerId);
   }
 
   function receiveRemoteStream(id) {
     var call = calls.get(id);
 
-    function emitStream(label, stream) {
-      debug('peer ' + id + ' added stream label: ' + label);
-      signaller.emit('stream:added', id, label, stream);
-      signaller.emit('stream:added:' + label, id, label, stream);
-    }
-
     return function(stream) {
-      var streamId = stream.id;
-      var label = streamId ? (call.streams.get(streamId) || '') : 'main';
-
-      debug('received remote stream from peer: ' + id + ', label: ' + label);
-
-      // if we have a label, then invoke the events
-      if (label) {
-        return emitStream(label, stream);
-      }
-
-      // if we don't have a label, then watch the call.streams until we do
-      call.streams.addMapChangeListener(function waitForLabel() {
-        // attempt to get the label again
-        label = call.streams.get(streamId) || '';
-        if (label) {
-          call.streams.removeMapChangeListener(waitForLabel);
-          emitStream(label, stream);
-        }
-      });
-    };
-  }
-
-  function shareStreamLabel(stream, label) {
-    return function(id) {
-      signaller.to(id).send('/stream:label', stream.id, label);
+      signaller.emit('stream:added', id, stream);
     };
   }
 
@@ -458,7 +417,6 @@ module.exports = function(signalhost, opts) {
     rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
   }
 
-  signaller.on('stream:label', handleStreamLabel);
   signaller.on('peer:announce', handlePeerAnnounce);
   signaller.on('peer:leave', callEnd);
 
@@ -482,39 +440,25 @@ module.exports = function(signalhost, opts) {
   **/
 
   /**
-    #### broadcast(stream)
+    #### addStream
 
-    Add the stream to the set of local streams that we will broadcast
-    to other peers.
+    ```
+    addStream(stream:MediaStream) => qc
+    ```
+
+    Add the stream to active calls and also save the stream so that it
+    can be added to future calls.
 
   **/
-  signaller.broadcast = signaller.addStream = function(label, stream) {
-    var textLabel = typeof label == 'string' || (label instanceof String);
+  signaller.broadcast = signaller.addStream = function(stream) {
+    localStreams.push(stream);
 
-    function attach(stream) {
-      // save the stream to the known local streams
-      localStreams.set(label, stream);
+    // if we have any active calls, then add the stream
+    calls.values().forEach(function(data) {
+      data.pc.addStream(stream);
+    });
 
-      // tell each of the active calls we have stream
-      calls.keys().forEach(shareStreamLabel(stream, label));
-
-      // if we have any active calls, then add the stream
-      calls.values().forEach(function(data) {
-        data.pc.addStream(stream);
-      });
-
-      return signaller;
-    }
-
-    // if the label is not a string and we have no stream defined,
-    // then it will likely be a stream so we need to remap args
-    if ((! textLabel) && (! stream)) {
-      stream = label;
-      label = 'main';
-    }
-
-    // if we have a stream, then attach now otherwise defer
-    return stream ? attach(stream) : attach;
+    return signaller;
   };
 
 
@@ -596,6 +540,58 @@ module.exports = function(signalhost, opts) {
     opts.reactive = true;
 
     // chain
+    return signaller;
+  };
+
+  /**
+    #### requestStream
+
+    ```
+    requestStream(targetId, idx, callback)
+    ```
+
+    Used to request a remote stream from a quickconnect instance. If the
+    stream is already available in the calls remote streams, then the callback
+    will be triggered immediately, otherwise this function will monitor
+    `stream:added` events and wait for a match.
+
+    In the case that an unknown target is requested, then an exception will
+    be thrown.
+  **/
+  signaller.requestStream = function(targetId, idx, callback) {
+    var call = calls.get(targetId);
+    var stream;
+
+    function waitForStream(peerId) {
+      if (peerId !== targetId) {
+        return;
+      }
+
+      // get the stream
+      stream = call.pc.getRemoteStreams()[idx];
+
+      // if we have the stream, then remove the listener and trigger the cb
+      if (stream) {
+        signaller.removeListener('stream:added', waitForStream);
+        callback(stream);
+      }
+    }
+
+    if (! call) {
+      return invalidCall(targetId);
+    }
+
+    // look for the stream in the remote streams of the call
+    stream = call.pc.getRemoteStreams()[idx];
+
+    // if we found the stream then trigger the callback
+    if (stream) {
+      callback(stream);
+      return signaller;
+    }
+
+    // otherwise wait for the stream
+    signaller.on('stream:added', waitForStream);
     return signaller;
   };
 

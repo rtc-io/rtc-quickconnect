@@ -19,6 +19,7 @@ test('initialize connections', function(t) {
   connections = require('./helpers/connect')(t.test.bind(t), 'stream:added tests', {
     prep0: function(subtest, conn) {
       subtest.plan(1);
+      // conn.flag('OfferToReceiveVideo', false);
       conn.addStream(localStream);
       subtest.pass('added stream to connection:0');
     }
@@ -26,9 +27,8 @@ test('initialize connections', function(t) {
 });
 
 test('connection:1 trigger stream:added', function(t) {
-  t.plan(2);
-  connections[1].once('stream:added', function(id, label, stream) {
+  t.plan(1);
+  connections[1].requestStream(connections[0].id, 0, function(stream) {
     t.ok(stream instanceof MediaStream, 'got stream');
-    t.equal(label, 'main', 'label == main');
   });
 });

@@ -16,11 +16,10 @@ test('capture stream', function(t) {
 });
 
 test('broadcast stream from 0 --> 1', function(t) {
-  t.plan(2);
-  connections[1].once('stream:added', function(id, label, stream) {
+  t.plan(1);
+  connections[1].once('stream:added', function(id, stream) {
     t.ok(stream instanceof MediaStream, 'got stream');
-    t.equal(label, 'main', 'label == main');
   });
 
-  connections[0].broadcast(localStream);
+  connections[0].addStream(localStream);
 });
