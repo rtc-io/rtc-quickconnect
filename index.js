@@ -554,14 +554,14 @@ module.exports = function(signalhost, opts) {
     function waitForChannel() {
       console.log(arguments);
       call.channels.removeMapChangeListener(waitForChannel, label);
-      callback(call.channels.get(label));
+      callback(null, call.channels.get(label));
     }
 
     channel = call.channels.get(label);
 
     // if we have then channel trigger the callback immediately
     if (channel) {
-      callback(channel);
+      callback(null, channel);
       return signaller;
     }
 
@@ -601,7 +601,7 @@ module.exports = function(signalhost, opts) {
       // if we have the stream, then remove the listener and trigger the cb
       if (stream) {
         signaller.removeListener('stream:added', waitForStream);
-        callback(stream);
+        callback(null, stream);
       }
     }
 
@@ -610,7 +610,7 @@ module.exports = function(signalhost, opts) {
 
     // if we found the stream then trigger the callback
     if (stream) {
-      callback(stream);
+      callback(null, stream);
       return signaller;
     }
 
