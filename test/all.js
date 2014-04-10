@@ -18,5 +18,5 @@ require('./request-stream');
 
 if (! detect.moz) {
   require('./reactive');
-  require('./reactive-event-stream-added');
+  require('./reactive-stream-events');
 }
