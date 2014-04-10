@@ -639,6 +639,34 @@ module.exports = function(signalhost, opts) {
     return signaller;
   };
 
+  /**
+    #### waitForCall
+
+    ```
+    waitForCall(targetId, callback)
+    ```
+
+    Wait for a call from the specified targetId.  If the call is already
+    active the callback will be fired immediately, otherwise we will wait
+    for a `call:started` event that matches the requested `targetId`
+
+  **/
+  signaller.waitForCall = function(targetId, callback) {
+    var call = calls.get(targetId);
+
+    if (call) {
+      callback(null, call.pc);
+      return signaller;
+    }
+
+    signaller.on('call:started', function handleNewCall(id) {
+      if (id === targetId) {
+        signaller.removeListener('call:started', handleNewCall);
+        callback(null, calls.get(id).pc);
+      }
+    });
+  };
+
   // pass the signaller on
   return signaller;
 };
