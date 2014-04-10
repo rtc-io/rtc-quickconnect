@@ -17,7 +17,7 @@ var localMedia = media();
 localMedia.once('capture', function(stream) {
   quickconnect('http://rtc.io/switchboard/', { room: 'conftest' })
     // broadcast our captured media to other participants in the room
-    .broadcast(stream)
+    .addStream(stream)
     // when a peer is connected (and active) pass it to us for use
     .on('call:started', function(id, pc, data) {
       console.log('peer connected: ', id);
