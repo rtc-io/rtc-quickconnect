@@ -36,26 +36,27 @@ test('create connector 1', function(t) {
 });
 
 test('check call active', function(t) {
-  t.plan(connections.length);
-  connections[0].waitForCall(connections[1].id, t.pass.bind(t, 'connected'));
-  connections[1].waitForCall(connections[0].id, t.pass.bind(t, 'connected'));
-});
+  t.plan(connections.length * 3);
 
-test('calls started', function(t) {
-  t.plan(connections.length);
-  connections.forEach(function(conn) {
-    conn.once('call:started', t.pass.bind(t, 'connected'));
+  connections.forEach(function(conn, index) {
+    conn.waitForCall(connections[index ^ 1].id, function(err, pc) {
+      t.ifError(err, 'call available');
+      t.ok(pc, 'have peer connection');
+      t.equal(pc.iceConnectionState, 'connected', 'call connected');
+    });
   });
 });
 
 test('data channels opened', function(t) {
-  t.plan(2);
-  connections[0].requestChannel(connections[1].id, 'test', function(dc) {
+  t.plan(4);
+  connections[0].requestChannel(connections[1].id, 'test', function(err, dc) {
+    t.ifError(err);
     dcs[0] = dc;
     t.equal(dc.readyState, 'open', 'connection test dc 0 open');
   });
 
-  connections[1].requestChannel(connections[0].id, 'test', function(dc) {
+  connections[1].requestChannel(connections[0].id, 'test', function(err, dc) {
+    t.ifError(err);
     dcs[1] = dc;
     t.equal(dc.readyState, 'open', 'connection test dc 1 open');
   });

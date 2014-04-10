@@ -28,8 +28,6 @@ function addNew(t) {
         // release the connection reference
         conn = null;
       }
-
-
     });
   }
 }

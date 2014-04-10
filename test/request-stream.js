@@ -34,15 +34,17 @@ test('initialize connections', function(t) {
 });
 
 test('connection:0 requestStream', function(t) {
-  t.plan(1);
-  connections[0].requestStream(connections[1].id, 0, function(stream) {
+  t.plan(2);
+  connections[0].requestStream(connections[1].id, 0, function(err, stream) {
+    t.ifError(err, 'no error');
     t.ok(stream instanceof MediaStream, 'got stream');
   });
 });
 
 test('connection:1 requestStream', function(t) {
-  t.plan(1);
-  connections[1].requestStream(connections[0].id, 0, function(stream) {
+  t.plan(2);
+  connections[1].requestStream(connections[0].id, 0, function(err, stream) {
+    t.ifError(err, 'no error');
     t.ok(stream instanceof MediaStream, 'got stream');
   });
 });
