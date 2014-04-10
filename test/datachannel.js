@@ -35,38 +35,30 @@ test('create connector 1', function(t) {
   setTimeout(t.pass.bind(t, 'dc created'), 500);
 });
 
-test('data channels opened', function(t) {
-  t.plan(2);
-  dcs[0] = connections[0].getChannel(connections[1].id, 'test');
-  dcs[1] = connections[1].getChannel(connections[0].id, 'test');
-
-  if (dcs[0]) {
-    t.pass('dc:0 open');
-  }
-  else {
-    connections[0].once('channel:opened:test', function(id, dc) {
-      dcs[0] = dc;
-      t.equal(dc.readyState, 'open', 'connection test dc 0 open');
-    });
-  }
-
-  if (dcs[1]) {
-    t.pass('dc:1 open');
-  }
-  else {
-    connections[1].once('channel:opened:test', function(id, dc) {
-      dcs[1] = dc;
-      t.equal(dc.readyState, 'open', 'connection test dc 1 open');
-    });
-  }
+test('check call active', function(t) {
+  t.plan(connections.length);
+  connections[0].waitForCall(connections[1].id, t.pass.bind(t, 'connected'));
+  connections[1].waitForCall(connections[0].id, t.pass.bind(t, 'connected'));
 });
 
-test('can getChannel', function(t) {
-  var dc;
+test('calls started', function(t) {
+  t.plan(connections.length);
+  connections.forEach(function(conn) {
+    conn.once('call:started', t.pass.bind(t, 'connected'));
+  });
+});
 
-  t.plan(1);
-  dc = connections[0].getChannel(connections[1].id, 'test');
-  t.ok(dc, 'found data channel');
+test('data channels opened', function(t) {
+  t.plan(2);
+  connections[0].requestChannel(connections[1].id, 'test', function(dc) {
+    dcs[0] = dc;
+    t.equal(dc.readyState, 'open', 'connection test dc 0 open');
+  });
+
+  connections[1].requestChannel(connections[0].id, 'test', function(dc) {
+    dcs[1] = dc;
+    t.equal(dc.readyState, 'open', 'connection test dc 1 open');
+  });
 });
 
 test('dc 0 send', function(t) {
