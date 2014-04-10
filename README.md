@@ -283,17 +283,14 @@ The following are functions that are patched into the `rtc-signaller`
 instance that make working with and creating functional WebRTC applications
 a lot simpler.
 
-#### broadcast(stream)
+#### addStream
 
-Add the stream to the set of local streams that we will broadcast
-to other peers.
+```
+addStream(stream:MediaStream) => qc
+```
 
-#### getChannel(targetId, name)
-
-This is an accessor method to get an **active** channel by it's label. If
-the channel is not yet active, then this function will return `undefined`.
-In this case you should use the `%label%:open` event handler to wait for
-the channel.
+Add the stream to active calls and also save the stream so that it
+can be added to future calls.
 
 #### close()
 
@@ -319,6 +316,32 @@ be emitted by `qc`.
 #### reactive()
 
 Flag that this session will be a reactive connection.
+
+#### receiveChannel
+
+```
+receiveChannel(targetId, label, callback)
+```
+
+This is a function that can be used to respond to remote peers supplying
+a data channel as part of their configuration.  As per the `receiveStream`
+function this function will either fire the callback immediately if the
+channel is already available, or once the channel has been discovered on
+the call.
+
+#### receiveStream
+
+```
+receiveStream(targetId, idx, callback)
+```
+
+Used to request a remote stream from a quickconnect instance. If the
+stream is already available in the calls remote streams, then the callback
+will be triggered immediately, otherwise this function will monitor
+`stream:added` events and wait for a match.
+
+In the case that an unknown target is requested, then an exception will
+be thrown.
 
 #### profile(data)
 
