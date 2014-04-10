@@ -214,7 +214,8 @@ module.exports = function(signalhost, opts) {
       active: false,
       pc: pc,
       channels: new FastMap(),
-      data: data
+      data: data,
+      streams: []
     });
   }
 
@@ -232,17 +233,15 @@ module.exports = function(signalhost, opts) {
     call.channels.keys().forEach(function(channelName) {
       signaller.emit(
         channelName + ':close',
-        data.channels.get(channelName),
+        call.channels.get(channelName),
         id
       );
     });
 
     // trigger stream:removed events for each of the remotestreams in the pc
-    if (call.pc) {
-      call.pc.getRemoteStreams().forEach(function(stream) {
-        signaller.emit('stream:removed', id, stream);
-      });
-    }
+    call.streams.forEach(function(stream) {
+      signaller.emit('stream:removed', id, stream);
+    });
 
     // trigger the call:ended event
     signaller.emit('call:ended', id, call.pc);
@@ -260,6 +259,7 @@ module.exports = function(signalhost, opts) {
 
     // flag the call as active
     call.active = true;
+    call.streams = [].concat(pc.getRemoteStreams());
 
     pc.onaddstream = createStreamAddHandler(id);
     pc.onremovestream = createStreamRemoveHandler(id);
@@ -275,9 +275,9 @@ module.exports = function(signalhost, opts) {
   }
 
   function createStreamAddHandler(id) {
-    var call = calls.get(id);
-
     return function(evt) {
+      debug('peer ' + id + ' added stream');
+      updateRemoteStreams(id);
       receiveRemoteStream(id)(evt.stream);
     }
   }
@@ -285,6 +285,7 @@ module.exports = function(signalhost, opts) {
   function createStreamRemoveHandler(id) {
     return function(evt) {
       debug('peer ' + id + ' removed stream');
+      updateRemoteStreams(id);
       signaller.emit('stream:removed', id, evt.stream);
     };
   }
@@ -414,6 +415,14 @@ module.exports = function(signalhost, opts) {
     return function(stream) {
       signaller.emit('stream:added', id, stream);
     };
+  }
+
+  function updateRemoteStreams(id) {
+    var call = calls.get(id);
+
+    if (call && call.pc) {
+      call.streams = [].concat(call.pc.getRemoteStreams());
+    }
   }
 
   // if the room is not defined, then generate the room name
