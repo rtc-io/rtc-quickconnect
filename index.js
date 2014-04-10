@@ -282,6 +282,16 @@ module.exports = function(signalhost, opts) {
     };
   }
 
+  function getActiveCall(peerId) {
+    var call = calls.get(peerId);
+
+    if (! call) {
+      throw new Error('No active call for peer: ' + peerId);
+    }
+
+    return call;
+  }
+
   function gotPeerChannel(channel, pc, data) {
     var channelMonitor;
 
@@ -391,10 +401,6 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function invalidCall(peerId) {
-    return new Error('No active call for peer: ' + peerId);
-  }
-
   function receiveRemoteStream(id) {
     var call = calls.get(id);
 
@@ -459,22 +465,6 @@ module.exports = function(signalhost, opts) {
     });
 
     return signaller;
-  };
-
-
-  /**
-    #### getChannel(targetId, name)
-
-    This is an accessor method to get an **active** channel by it's label. If
-    the channel is not yet active, then this function will return `undefined`.
-    In this case you should use the `%label%:open` event handler to wait for
-    the channel.
-
-  **/
-  signaller.getChannel = function(targetId, name) {
-    var call = calls.get(targetId);
-
-    return call && call.channels.get(name);
   };
 
   /**
@@ -544,10 +534,48 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
-    #### requestStream
+    #### receiveChannel
 
     ```
-    requestStream(targetId, idx, callback)
+    receiveChannel(targetId, label, callback)
+    ```
+
+    This is a function that can be used to respond to remote peers supplying
+    a data channel as part of their configuration.  As per the `receiveStream`
+    function this function will either fire the callback immediately if the
+    channel is already available, or once the channel has been discovered on
+    the call.
+
+  **/
+  signaller.receiveChannel = function(targetId, label, callback) {
+    var call = getActiveCall(targetId);
+    var channel;
+
+    function waitForChannel() {
+      console.log(arguments);
+      call.channels.removeMapChangeListener(waitForChannel, label);
+      callback(call.channels.get(label));
+    }
+
+    channel = call.channels.get(label);
+
+    // if we have then channel trigger the callback immediately
+    if (channel) {
+      callback(channel);
+      return signaller;
+    }
+
+    // if not, wait for it
+    call.channels.addMapChangeListener(waitForChannel, label);
+
+    return signaller;
+  };
+
+  /**
+    #### receiveStream
+
+    ```
+    receiveStream(targetId, idx, callback)
     ```
 
     Used to request a remote stream from a quickconnect instance. If the
@@ -558,8 +586,8 @@ module.exports = function(signalhost, opts) {
     In the case that an unknown target is requested, then an exception will
     be thrown.
   **/
-  signaller.requestStream = function(targetId, idx, callback) {
-    var call = calls.get(targetId);
+  signaller.receiveStream = function(targetId, idx, callback) {
+    var call = getActiveCall(targetId);
     var stream;
 
     function waitForStream(peerId) {
@@ -575,10 +603,6 @@ module.exports = function(signalhost, opts) {
         signaller.removeListener('stream:added', waitForStream);
         callback(stream);
       }
-    }
-
-    if (! call) {
-      return invalidCall(targetId);
     }
 
     // look for the stream in the remote streams of the call
