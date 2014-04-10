@@ -14,7 +14,7 @@ require('./profile');
 require('./datachannel');
 // require('./heartbeat-disconnect');
 require('./custom-id');
-require('./event-stream-added');
+require('./request-stream');
 
 if (! detect.moz) {
   require('./reactive');
