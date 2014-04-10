@@ -22,11 +22,25 @@ test('initialize connections', function(t) {
       // conn.flag('OfferToReceiveVideo', false);
       conn.addStream(localStream);
       subtest.pass('added stream to connection:0');
+    },
+
+    prep1: function(subtest, conn) {
+      subtest.plan(1);
+      // conn.flag('OfferToReceiveVideo', false);
+      conn.addStream(localStream);
+      subtest.pass('added stream to connection:1');
     }
   });
 });
 
-test('connection:1 trigger stream:added', function(t) {
+test('connection:0 requestStream', function(t) {
+  t.plan(1);
+  connections[0].requestStream(connections[1].id, 0, function(stream) {
+    t.ok(stream instanceof MediaStream, 'got stream');
+  });
+});
+
+test('connection:1 requestStream', function(t) {
   t.plan(1);
   connections[1].requestStream(connections[0].id, 0, function(stream) {
     t.ok(stream instanceof MediaStream, 'got stream');
