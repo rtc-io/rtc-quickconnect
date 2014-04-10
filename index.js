@@ -534,10 +534,10 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
-    #### receiveChannel
+    #### requestChannel
 
     ```
-    receiveChannel(targetId, label, callback)
+    requestChannel(targetId, label, callback)
     ```
 
     This is a function that can be used to respond to remote peers supplying
@@ -547,7 +547,7 @@ module.exports = function(signalhost, opts) {
     the call.
 
   **/
-  signaller.receiveChannel = function(targetId, label, callback) {
+  signaller.requestChannel = function(targetId, label, callback) {
     var call = getActiveCall(targetId);
     var channel;
 
@@ -572,10 +572,10 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
-    #### receiveStream
+    #### requestStream
 
     ```
-    receiveStream(targetId, idx, callback)
+    requestStream(targetId, idx, callback)
     ```
 
     Used to request a remote stream from a quickconnect instance. If the
@@ -586,7 +586,7 @@ module.exports = function(signalhost, opts) {
     In the case that an unknown target is requested, then an exception will
     be thrown.
   **/
-  signaller.receiveStream = function(targetId, idx, callback) {
+  signaller.requestStream = function(targetId, idx, callback) {
     var call = getActiveCall(targetId);
     var stream;
 
