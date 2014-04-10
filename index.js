@@ -216,6 +216,7 @@ module.exports = function(signalhost, opts) {
 
   function callCreate(id, pc, data) {
     calls.set(id, {
+      active: false,
       pc: pc,
       channels: new FastMap(),
       data: data
@@ -252,7 +253,11 @@ module.exports = function(signalhost, opts) {
   }
 
   function callStart(id, pc, data) {
+    var call = calls.get(id);
     var streams = [].concat(pc.getRemoteStreams());
+
+    // flag the call as active
+    call.active = true;
 
     pc.onaddstream = createStreamAddHandler(id);
     pc.onremovestream = createStreamRemoveHandler(id);
@@ -654,7 +659,7 @@ module.exports = function(signalhost, opts) {
   signaller.waitForCall = function(targetId, callback) {
     var call = calls.get(targetId);
 
-    if (call) {
+    if (call && call.active) {
       callback(null, call.pc);
       return signaller;
     }
