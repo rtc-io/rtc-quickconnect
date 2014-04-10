@@ -317,10 +317,10 @@ be emitted by `qc`.
 
 Flag that this session will be a reactive connection.
 
-#### receiveChannel
+#### requestChannel
 
 ```
-receiveChannel(targetId, label, callback)
+requestChannel(targetId, label, callback)
 ```
 
 This is a function that can be used to respond to remote peers supplying
@@ -329,10 +329,10 @@ function this function will either fire the callback immediately if the
 channel is already available, or once the channel has been discovered on
 the call.
 
-#### receiveStream
+#### requestStream
 
 ```
-receiveStream(targetId, idx, callback)
+requestStream(targetId, idx, callback)
 ```
 
 Used to request a remote stream from a quickconnect instance. If the
@@ -348,6 +348,16 @@ be thrown.
 Update the profile data with the attached information, so when 
 the signaller announces it includes this data in addition to any
 room and id information.
+
+#### waitForCall
+
+```
+waitForCall(targetId, callback)
+```
+
+Wait for a call from the specified targetId.  If the call is already
+active the callback will be fired immediately, otherwise we will wait
+for a `call:started` event that matches the requested `targetId`
 
 ## License(s)
 
