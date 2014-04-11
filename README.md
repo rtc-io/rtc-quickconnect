@@ -16,6 +16,14 @@ configuration you should drill down into lower level components of the
 [![Gitter chat](https://badges.gitter.im/rtc-io/discuss.png)](https://gitter.im/rtc-io/discuss)
 
 
+## Upgrading to 1.0
+
+The [upgrading to 1.0 documentation](https://github.com/rtc-io/rtc-quickconnect/blob/master/docs/upgrading-to-1.0.md)
+provides some information on what you need to change to upgrade to
+`rtc-quickconnect@1.0`.  Additionally, the
+[quickconnect demo app](https://github.com/rtc-io/rtcio-demo-quickconnect)
+has been updated which should provide some additional information.
+
 ## Example Usage
 
 In the simplest case you simply call quickconnect with a single string
@@ -170,7 +178,7 @@ var localMedia = media();
 localMedia.once('capture', function(stream) {
   quickconnect('http://rtc.io/switchboard/', { room: 'conftest' })
     // broadcast our captured media to other participants in the room
-    .broadcast(stream)
+    .addStream(stream)
     // when a peer is connected (and active) pass it to us for use
     .on('call:started', function(id, pc, data) {
       console.log('peer connected: ', id);
@@ -311,6 +319,15 @@ be emitted by `qc`.
 #### reactive()
 
 Flag that this session will be a reactive connection.
+
+#### removeStream
+
+```
+removeStream(stream:MediaStream)
+```
+
+Remove the specified stream from both the local streams that are to 
+be connected to new peers, and also from any active calls.
 
 #### requestChannel
 
