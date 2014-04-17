@@ -63,7 +63,7 @@ var reTrailingSlash = /\/$/;
 
     The `channel:opened` event is triggered whenever an `RTCDataChannel` has
     been opened (it's ready to send data) to a remote peer.
-  
+
   - `channel:opened:%label% => function(id, datachannel, data)`
 
     This is equivalent of the `channel:opened` event, but only triggered for
@@ -325,7 +325,7 @@ module.exports = function(signalhost, opts) {
         call.channels.set(channel.label, channel);
       }
 
-      // trigger the %channel.label%:open event 
+      // trigger the %channel.label%:open event
       debug('triggering channel:opened events for channel: ' + channel.label);
 
       // emit the plain channel:opened event
@@ -466,7 +466,7 @@ module.exports = function(signalhost, opts) {
     The following are functions that are patched into the `rtc-signaller`
     instance that make working with and creating functional WebRTC applications
     a lot simpler.
-    
+
   **/
 
   /**
@@ -564,7 +564,7 @@ module.exports = function(signalhost, opts) {
     removeStream(stream:MediaStream)
     ```
 
-    Remove the specified stream from both the local streams that are to 
+    Remove the specified stream from both the local streams that are to
     be connected to new peers, and also from any active calls.
 
   **/
@@ -672,7 +672,7 @@ module.exports = function(signalhost, opts) {
   /**
     #### profile(data)
 
-    Update the profile data with the attached information, so when 
+    Update the profile data with the attached information, so when
     the signaller announces it includes this data in addition to any
     room and id information.
 
@@ -685,7 +685,7 @@ module.exports = function(signalhost, opts) {
     if (announced) {
       signaller.announce(profile);
     }
-    
+
     return signaller;
   };
 
