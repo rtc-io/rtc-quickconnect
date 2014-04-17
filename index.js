@@ -421,7 +421,7 @@ module.exports = function(signalhost, opts) {
     var call = calls.get(id);
 
     return function(stream) {
-      signaller.emit('stream:added', id, stream);
+      signaller.emit('stream:added', id, stream, call && call.data);
     };
   }
 
