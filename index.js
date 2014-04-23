@@ -82,12 +82,12 @@ var reTrailingSlash = /\/$/;
     `foo` channel once open, and when the `bar` channel is opened no handler
     would be invoked.
 
-  - `channel:closed => function(id, label)`
+  - `channel:closed => function(id, datachannel, label)`
 
     Emitted when the channel has been closed, works when a connection has
     been closed or the channel itself has been closed.
 
-  - `channel:closed:%label% => function(id, label)`
+  - `channel:closed:%label% => function(id, datachannel, label)`
 
     The label specific equivalent of `channel:closed`.
 
@@ -238,12 +238,14 @@ module.exports = function(signalhost, opts) {
     debug('ending call to: ' + id);
 
     // if we have no data, then return
-    call.channels.keys().forEach(function(channelName) {
-      signaller.emit(
-        'channel:closed:' + channelName,
-        call.channels.get(channelName),
-        id
-      );
+    call.channels.keys().forEach(function(label) {
+      var args = [id, call.channels.get(label), label];
+
+      // emit the plain channel:closed event
+      signaller.emit.apply(signaller, ['channel:closed'].concat(args));
+
+      // emit the labelled version of the event
+      signaller.emit.apply(signaller, ['channel:closed:' + label].concat(args));
     });
 
     // trigger stream:removed events for each of the remotestreams in the pc
