@@ -240,7 +240,7 @@ module.exports = function(signalhost, opts) {
     // if we have no data, then return
     call.channels.keys().forEach(function(channelName) {
       signaller.emit(
-        channelName + ':close',
+        'channel:closed:' + channelName,
         call.channels.get(channelName),
         id
       );
