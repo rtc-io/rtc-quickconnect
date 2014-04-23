@@ -88,17 +88,20 @@ test('close connection 0 and wait for dc close notifications', function(t) {
   var timer = setTimeout(t.fail.bind(t, 'timed out'), 10000);
   var closedCount = 0;
 
-  function handleClose() {
-    t.pass('channel closed');
-    closedCount += 1;
+  function handleClose(peerId, datachannel, label) {
+    t.equal(label, 'test', 'label == test');
+    t.ok(datachannel.readyState, '2nd arg is a data channel');
+    t.equal(typeof peerId, 'string', '1st args is a string');
 
-    if (closedCount === 2) {
+    closedCount += 1;
+    if (closedCount === 4) {
       clearTimeout(timer);
     }
   }
 
-  t.plan(2);
+  t.plan(12);
   connections.forEach(function(conn, idx) {
+    conn.once('channel:closed', handleClose);
     conn.once('channel:closed:test', handleClose);
   });
 
