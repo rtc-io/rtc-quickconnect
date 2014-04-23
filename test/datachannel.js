@@ -42,7 +42,9 @@ test('check call active', function(t) {
     conn.waitForCall(connections[index ^ 1].id, function(err, pc) {
       t.ifError(err, 'call available');
       t.ok(pc, 'have peer connection');
-      t.equal(pc.iceConnectionState, 'connected', 'call connected');
+
+      // check connection state valid
+      t.ok(['connected', 'completed'].indexOf(pc.iceConnectionState) >= 0, 'call connected');
     });
   });
 });
@@ -82,12 +84,33 @@ test('dc 1 send', function(t) {
   dcs[1].send('hi');
 });
 
-test('release references', function(t) {
-  t.plan(1);
-  connections.splice(0).forEach(function(conn, index) {
-    conn.close();
+test('close connection 0 and wait for dc close notifications', function(t) {
+  var timer = setTimeout(t.fail.bind(t, 'timed out'), 10000);
+  var closedCount = 0;
+
+  function handleClose() {
+    t.pass('channel closed');
+    closedCount += 1;
+
+    if (closedCount === 2) {
+      clearTimeout(timer);
+    }
+  }
+
+  t.plan(2);
+  connections.forEach(function(conn, idx) {
+    conn.once('channel:closed:test', handleClose);
   });
 
+  connections[0].close();
+});
+
+test('release references', function(t) {
+  t.plan(1);
+
+  connections[1].close();
+  connections = [];
   dcs = [];
+
   t.pass('done');
 });
