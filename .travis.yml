@@ -7,9 +7,9 @@ env:
     - BROWSER=chrome  BVER=stable
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
-    - BROWSER=firefox BVER=stable
-    - BROWSER=firefox BVER=beta
-    - BROWSER=firefox BVER=aurora
+#    - BROWSER=firefox BVER=stable
+#    - BROWSER=firefox BVER=beta
+#    - BROWSER=firefox BVER=aurora
 
 before_install:
   - mkdir -p .travis
