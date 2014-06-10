@@ -23,7 +23,7 @@
   "dependencies": {
     "rtc": "^1",
     "cog": "^0.5.2",
-    "rtc-signaller": "^1",
+    "rtc-signaller": "rtc-io/rtc-signaller#node-compat",
     "rtc-core": "^1",
     "collections": "^1"
   },
