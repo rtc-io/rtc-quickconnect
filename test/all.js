@@ -1,4 +1,4 @@
-var detect = require('rtc/detect');
+var detect = require('rtc-tools/detect');
 var isTestling = typeof __testlingConsole != 'undefined';
 
 // if we are running in testling then run the media tests

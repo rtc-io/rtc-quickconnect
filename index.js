@@ -2,8 +2,8 @@
 'use strict';
 
 var EventEmitter = require('events').EventEmitter;
-var rtc = require('rtc');
-var cleanup = require('rtc/cleanup');
+var rtc = require('rtc-tools');
+var cleanup = require('rtc-tools/cleanup');
 var debug = rtc.logger('rtc-quickconnect');
 var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');

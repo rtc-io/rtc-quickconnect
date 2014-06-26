@@ -1,6 +1,6 @@
 var quickconnect = require('../../');
 var defaults = require('cog/defaults');
-var detect = require('rtc/detect');
+var detect = require('rtc-tools/detect');
 
 module.exports = function(test, prefix, opts) {
   var connections = [];
