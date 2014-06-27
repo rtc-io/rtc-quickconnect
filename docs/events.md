@@ -1,3 +1,5 @@
+## Events
+
 The following events are emitted from the signalling object created by calling `quickconnect()`:
 
 ### Call Level Events
