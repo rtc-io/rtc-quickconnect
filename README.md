@@ -10,10 +10,9 @@ configuration you should drill down into lower level components of the
 
 [![NPM](https://nodei.co/npm/rtc-quickconnect.png)](https://nodei.co/npm/rtc-quickconnect/)
 
-[![Build Status](https://img.shields.io/travis/rtc-io/rtc-quickconnect.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-quickconnect)
-![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)
-
+[![Build Status](https://img.shields.io/travis/rtc-io/rtc-quickconnect.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-quickconnect) [![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)](https://github.com/dominictarr/stability#unstable) 
 [![Gitter chat](https://badges.gitter.im/rtc-io/discuss.png)](https://gitter.im/rtc-io/discuss)
+
 
 
 ## Upgrading to 1.0
@@ -40,36 +39,29 @@ quickconnect('http://rtc.io/switchboard/', { room: 'qc-simple-demo' })
 
 ## Events
 
-The following events are emitted from the signalling object created by
-calling `quickconnect()`:
+The following events are emitted from the signalling object created by calling `quickconnect()`:
 
 ### Call Level Events
 
-A "call" in quickconnect is equivalent to an established `RTCPeerConnection`
-between this quickconnect instance a remote peer.
+A "call" in quickconnect is equivalent to an established `RTCPeerConnection` between this quickconnect instance a remote peer.
 
 - `call:started => function(id, peerconnection, data)`
 
-  Triggered once a peer connection has been established been established
-  between this quickconnect instance and another.
+  Triggered once a peer connection has been established been established between this quickconnect instance and another.
 
 - `call:ended => function(id)`
 
-  Triggered when a peer connection has been closed.  This may be due to the
-  peer connection itself indicating that it has been closed, or we may have
-  lost connection with the remote signaller and the connection has timed out.
+  Triggered when a peer connection has been closed.  This may be due to the peer connection itself indicating that it has been closed, or we may have lost connection with the remote signaller and the connection has timed out.
 
 ### Data Channel Level Events
 
 - `channel:opened => function(id, datachannel, data)`
 
-  The `channel:opened` event is triggered whenever an `RTCDataChannel` has
-  been opened (it's ready to send data) to a remote peer.
+  The `channel:opened` event is triggered whenever an `RTCDataChannel` has been opened (it's ready to send data) to a remote peer.
 
 - `channel:opened:%label% => function(id, datachannel, data)`
 
-  This is equivalent of the `channel:opened` event, but only triggered for
-  a channel with label `%label%`.  For example:
+  This is equivalent of the `channel:opened` event, but only triggered for a channel with label `%label%`.  For example:
 
   ```js
   quickconnect('http://rtc.io/switchboard', { room: 'test' })
@@ -80,16 +72,13 @@ between this quickconnect instance a remote peer.
     });
   ```
 
-  In the case above the console message would only be displayed for the
-  `foo` channel once open, and when the `bar` channel is opened no handler
-  would be invoked.
+  In the case above the console message would only be displayed for the `foo` channel once open, and when the `bar` channel is opened no handler would be invoked.
 
-- `channel:closed => function(id, label)`
+- `channel:closed => function(id, datachannel, label)`
 
-  Emitted when the channel has been closed, works when a connection has
-  been closed or the channel itself has been closed.
+  Emitted when the channel has been closed, works when a connection has been closed or the channel itself has been closed.
 
-- `channel:closed:%label% => function(id, label)`
+- `channel:closed:%label% => function(id, datachannel, label)`
 
   The label specific equivalent of `channel:closed`.
 
@@ -97,16 +86,12 @@ between this quickconnect instance a remote peer.
 
 - `stream:added => function(id, stream, data)`
 
-  The `stream:added` event is triggered when an `RTCPeerConnection` has
-  successfully been established to another peer that contains remote
-  streams.  Additionally, if you are using quickconnect in it's "reactive"
-  mode then you will also receive `stream:added` events as streams are
-  dynamically added to the connection by the remote peer.
+  The `stream:added` event is triggered when an `RTCPeerConnection` has successfully been established to another peer that contains remote streams.  Additionally, if you are using quickconnect in it's "reactive" mode then you will also receive `stream:added` events as streams are dynamically added to the connection by the remote peer.
 
 - `stream:removed => function(id)`
 
-  As per the `stream:added` event but triggered when a stream has been
-  removed.
+  As per the `stream:added` event but triggered when a stream has been removed.
+
 
 ## Example Usage (using data channels)
 
@@ -326,7 +311,7 @@ Flag that this session will be a reactive connection.
 removeStream(stream:MediaStream)
 ```
 
-Remove the specified stream from both the local streams that are to 
+Remove the specified stream from both the local streams that are to
 be connected to new peers, and also from any active calls.
 
 #### requestChannel
@@ -357,7 +342,7 @@ be thrown.
 
 #### profile(data)
 
-Update the profile data with the attached information, so when 
+Update the profile data with the attached information, so when
 the signaller announces it includes this data in addition to any
 room and id information.
 
