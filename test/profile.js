@@ -5,19 +5,22 @@ var clients = [];
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
-// require('cog/logger').enable('*');
-
 test('create test participant', function(t) {
-  t.plan(1);
+  t.plan(3);
 
   clients[0] = quickconnect(signallingServer, { room: roomId });
   clients[0].once('local:announce', function() {
     t.pass('have locally announced');
   });
+
+  clients[0].once('connected', t.pass.bind(t, 'connected to the signaling server'));
+  clients[0].once('roominfo', function(data) {
+    t.ok(data && data.memberCount === 1, 'got correct membercount');
+  });
 });
 
 test('announce with additional profile information', function(t) {
-  t.plan(3);
+  t.plan(5);
 
   clients[0].once('peer:announce', function(data) {
     t.equal(data.name, 'Bob', 'client:0 got name data');
@@ -26,6 +29,11 @@ test('announce with additional profile information', function(t) {
   clients[1] = quickconnect(signallingServer, { room: roomId }).profile({ name: 'Bob' });
   clients[1].once('local:announce', function(data) {
     t.equal(data.name, 'Bob', 'name included in local announce');
+  });
+
+  clients[1].once('connected', t.pass.bind(t, 'connected to the signaling server'));
+  clients[1].once('roominfo', function(data) {
+    t.ok(data && data.memberCount === 2, 'got correct membercount');
   });
 
   clients[1].once('peer:announce', function(data) {
