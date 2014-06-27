@@ -368,6 +368,7 @@ module.exports = function(signalhost, opts) {
 
     // create a peer connection
     pc = rtc.createConnection(opts, (opts || {}).constraints);
+    signaller.emit('connection:create', pc, data);
 
     // add this connection to the calls list
     callCreate(data.id, pc, data);
