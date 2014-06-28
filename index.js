@@ -115,7 +115,7 @@ module.exports = function(signalhost, opts) {
   var localStreams = [];
 
   // create the calls map
-  var calls = signaller.calls = new FastMap();
+  var calls = signaller.calls = getable({});
 
   // create the known data channels registry
   var channels = {};
@@ -124,7 +124,7 @@ module.exports = function(signalhost, opts) {
     calls.set(id, {
       active: false,
       pc: pc,
-      channels: new FastMap(),
+      channels: getable({}),
       data: data,
       streams: []
     });
@@ -505,14 +505,7 @@ module.exports = function(signalhost, opts) {
   **/
   signaller.requestChannel = function(targetId, label, callback) {
     var call = getActiveCall(targetId);
-    var channel;
-
-    function waitForChannel() {
-      call.channels.removeMapChangeListener(waitForChannel, label);
-      callback(null, call.channels.get(label));
-    }
-
-    channel = call.channels.get(label);
+    var channel = call && call.channels.get(label);
 
     // if we have then channel trigger the callback immediately
     if (channel) {
@@ -521,7 +514,9 @@ module.exports = function(signalhost, opts) {
     }
 
     // if not, wait for it
-    call.channels.addMapChangeListener(waitForChannel, label);
+    signaller.once('channel:opened:' + label, function(id, dc) {
+      callback(null, dc);
+    });
 
     return signaller;
   };
