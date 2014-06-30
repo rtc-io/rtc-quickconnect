@@ -1,7 +1,6 @@
 /* jshint node: true */
 'use strict';
 
-var EventEmitter = require('events').EventEmitter;
 var rtc = require('rtc-tools');
 var cleanup = require('rtc-tools/cleanup');
 var debug = rtc.logger('rtc-quickconnect');
