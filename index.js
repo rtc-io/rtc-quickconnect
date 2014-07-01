@@ -155,14 +155,14 @@ module.exports = function(signalhost, opts) {
       signaller.emit('stream:removed', id, stream);
     });
 
+    // delete the call data
+    calls.delete(id);
+
     // trigger the call:ended event
     signaller.emit('call:ended', id, call.pc);
 
     // ensure the peer connection is properly cleaned up
     cleanup(call.pc);
-
-    // delete the call data
-    calls.delete(id);
   }
 
   function callStart(id, pc, data) {
