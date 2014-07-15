@@ -360,7 +360,6 @@ module.exports = function(signalhost, opts) {
 
     // announce and emit the local announce event
     signaller.announce(data);
-    signaller.emit('local:announce', data);
     announced = true;
   }, 0);
 
