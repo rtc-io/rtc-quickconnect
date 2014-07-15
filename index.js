@@ -396,16 +396,27 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
+    #### endCalls()
+
+    The `endCalls` function terminates all the active calls that have been
+    created in this quickconnect instance.  Calling `endCalls` does not
+    kill the connection with the signalling server.
+
+  **/
+  signaller.endCalls = function() {
+    calls.keys().forEach(callEnd);
+  };
+
+  /**
     #### close()
 
     The `close` function provides a convenient way of closing all associated
-    peer connections.
+    peer connections.  This function simply uses the `endCalls` function and
+    the underlying `leave` function of the signaller to do a "full cleanup"
+    of all connections.
   **/
   signaller.close = function() {
-    // end each of the active calls
-    calls.keys().forEach(callEnd);
-
-    // call the underlying signaller.leave (for which close is an alias)
+    signaller.endCalls();
     signaller.leave();
   };
 
