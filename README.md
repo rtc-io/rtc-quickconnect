@@ -268,10 +268,18 @@ addStream(stream:MediaStream) => qc
 Add the stream to active calls and also save the stream so that it
 can be added to future calls.
 
+#### endCalls()
+
+The `endCalls` function terminates all the active calls that have been
+created in this quickconnect instance.  Calling `endCalls` does not
+kill the connection with the signalling server.
+
 #### close()
 
 The `close` function provides a convenient way of closing all associated
-peer connections.
+peer connections.  This function simply uses the `endCalls` function and
+the underlying `leave` function of the signaller to do a "full cleanup"
+of all connections.
 
 #### createDataChannel(label, config)
 
