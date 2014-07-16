@@ -39,7 +39,7 @@ quickconnect('http://rtc.io/switchboard/', { room: 'qc-simple-demo' })
 
 ## Events
 
-The following events are emitted from the signalling object created by calling `quickconnect()`:
+The following events are emitted from the signalling object created by calling `quickconnect()`. Additionally, any of the underlying [signaller events](https://github.com/rtc-io/rtc-signaller#signaller-events) can also be used.
 
 ### Call Level Events
 
