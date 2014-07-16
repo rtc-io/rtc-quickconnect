@@ -259,6 +259,13 @@ module.exports = function(signalhost, opts) {
     }, 500);
   }
 
+  function handleLocalAnnounce(data) {
+    // if we send an announce with an updated room then update our local room name
+    if (data && typeof data.room != 'undefined') {
+      room = data.room;
+    }
+  }
+
   function handlePeerAnnounce(data) {
     var pc;
     var monitor;
@@ -321,6 +328,18 @@ module.exports = function(signalhost, opts) {
     }
   }
 
+  function handlePeerUpdate(data) {
+    var id = data && data.id;
+    var activeCall = id && calls.get(id);
+
+    // if we have received an update for a peer that has no active calls,
+    // then pass this onto the announce handler
+    if (id && (! activeCall)) {
+      debug('received peer update from peer ' + id + ', no active calls');
+      return handlePeerAnnounce(data);
+    }
+  }
+
   function receiveRemoteStream(id) {
     var call = calls.get(id);
 
@@ -352,6 +371,7 @@ module.exports = function(signalhost, opts) {
   }
 
   signaller.on('peer:announce', handlePeerAnnounce);
+  signaller.on('peer:update', handlePeerUpdate);
   signaller.on('peer:leave', callEnd);
 
   // announce ourselves to our new friend
@@ -625,6 +645,9 @@ module.exports = function(signalhost, opts) {
       }
     });
   };
+
+  // respond to local announce messages
+  signaller.on('local:announce', handleLocalAnnounce);
 
   // pass the signaller on
   return signaller;
