@@ -277,7 +277,7 @@ module.exports = function(signalhost, opts) {
 
     // create a peer connection
     pc = rtc.createConnection(opts, (opts || {}).constraints);
-    signaller.emit('peer:connect', pc, data);
+    signaller.emit('peer:connect', data.id, pc, data);
 
     // add this connection to the calls list
     callCreate(data.id, pc, data);
@@ -316,7 +316,7 @@ module.exports = function(signalhost, opts) {
     // couple the connections
     debug('coupling ' + signaller.id + ' to ' + data.id);
     monitor = rtc.couple(pc, data.id, signaller, opts);
-    signaller.emit('peer:couple', pc, data, monitor);
+    signaller.emit('peer:couple', data.id, pc, data, monitor);
 
     // once active, trigger the peer connect event
     monitor.once('connected', callStart.bind(null, data.id, pc, data))
