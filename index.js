@@ -141,13 +141,17 @@ module.exports = function(signalhost, opts) {
 
     // if we have no data, then return
     call.channels.keys().forEach(function(label) {
-      var args = [id, call.channels.get(label), label];
+      var channel = call.channels.get(label);
+      var args = [id, channel, label];
 
       // emit the plain channel:closed event
       signaller.emit.apply(signaller, ['channel:closed'].concat(args));
 
       // emit the labelled version of the event
       signaller.emit.apply(signaller, ['channel:closed:' + label].concat(args));
+
+      // decouple the events
+      channel.onopen = null;
     });
 
     // trigger stream:removed events for each of the remotestreams in the pc
