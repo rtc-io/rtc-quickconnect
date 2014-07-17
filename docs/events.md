@@ -2,6 +2,18 @@
 
 The following events are emitted from the signalling object created by calling `quickconnect()`. Additionally, any of the underlying [signaller events](https://github.com/rtc-io/rtc-signaller#signaller-events) can also be used.
 
+### Peer Level Events
+
+The peer level events provided in quickconnect provide you the ability to tap into the various stages of the lifecycle for connecting with a peer, before the connection actually migrates to the status of a connected "call".
+
+- `peer:connect => function(id, peerconnection, data)`
+
+  The `peer:connect` event is emitted when we first create a connection to a discovered peer.  The `peerconnection` argument is a standard `RTCPeerConnection` instance.
+
+- `peer:couple => funtion(id, peerconnection, data, monitor)`
+
+  The `peer:couple` event is emitted when once quickconnect has [coupled](https://github.com/rtc-io/rtc-tools#rtc-toolscouple) to it's remote counterpart.
+
 ### Call Level Events
 
 A "call" in quickconnect is equivalent to an established `RTCPeerConnection` between this quickconnect instance a remote peer.
