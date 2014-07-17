@@ -7,28 +7,36 @@ var roomId = uuid.v4();
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
-require('cog/logger').enable('rtc-quickconnect');
+// require('cog/logger').enable('rtc-quickconnect');
 
 test('peer:connect', function(t) {
-
   var qc, timer;
-  t.plan(1);
+
+  t.plan(5);
+
   qc = connections[0] = quickconnect(signallingServer, { room: roomId });
+  qc.once('peer:connect', function(id, pc, data) {
+    t.equal(id, connections[1].id, 'detected connect');
 
-  qc.on('peer:connect', function(pc, data) {
-
-    qc.on('channel:opened:et', function(id, dc) { 
+    qc.once('channel:opened:et', function() {
+      t.pass('data channel open');
 
       pc.getStats(function(stats) {
+        t.pass('got stats');
         clearTimeout(timer);
-        t.pass('emits correctly');
       });
     });
 
     qc.createDataChannel('et');
-  });  
+  });
 
-  connections[1] = quickconnect(signallingServer, { room: roomId }).createDataChannel('eventstest');
+  qc.once('peer:couple', function(id, pc, data, monitor) {
+    t.ok(monitor, 'coupling created, monitor created');
+    monitor.once('connected', t.pass.bind(t, 'connected'));
+  });
+
+
+  connections[1] = quickconnect(signallingServer, { room: roomId }).createDataChannel('et');
 
   timer = setTimeout(function () {
     t.fail('Timed out')
@@ -36,6 +44,8 @@ test('peer:connect', function(t) {
 });
 
 test('clean up', function(t) {
+  t.plan(1);
+
   for (var i = 0; i < connections.length; i++) {
     connections[0].close();
   }
