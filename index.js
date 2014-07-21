@@ -119,6 +119,9 @@ module.exports = function(signalhost, opts) {
   // create the known data channels registry
   var channels = {};
 
+  // save the plugins passed to the signaller
+  var plugins = signaller.plugins = (opts || {}).plugins || [];
+
   function callCreate(id, pc, data) {
     calls.set(id, {
       active: false,
