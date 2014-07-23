@@ -15,14 +15,6 @@ configuration you should drill down into lower level components of the
 
 
 
-## Upgrading to 1.0
-
-The [upgrading to 1.0 documentation](https://github.com/rtc-io/rtc-quickconnect/blob/master/docs/upgrading-to-1.0.md)
-provides some information on what you need to change to upgrade to
-`rtc-quickconnect@1.0`.  Additionally, the
-[quickconnect demo app](https://github.com/rtc-io/rtcio-demo-quickconnect)
-has been updated which should provide some additional information.
-
 ## Example Usage
 
 In the simplest case you simply call quickconnect with a single string
