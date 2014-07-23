@@ -40,7 +40,7 @@ test('peer:connect', function(t) {
 
   timer = setTimeout(function () {
     t.fail('Timed out')
-  }, 5000);
+  }, 10000);
 });
 
 test('clean up', function(t) {
