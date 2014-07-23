@@ -24,7 +24,7 @@
     "cog": "^1",
     "rtc-core": "^3",
     "rtc-signaller": "^2.4.0",
-    "rtc-tools": "^2"
+    "rtc-tools": "^3.0.0"
   },
   "devDependencies": {
     "crel": "^1",
