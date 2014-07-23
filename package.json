@@ -27,18 +27,19 @@
     "rtc-tools": "^3.0.0"
   },
   "devDependencies": {
-    "crel": "^1",
-    "rtc-media": "^1",
-    "tape": "^2",
-    "rtc-switchboard": "^0.10.1",
-    "uuid": "~1.4.1",
-    "rtc-videoproc": "^0.11.0",
-    "rtc-captureconfig": "^1",
-    "rtc-bufferedchannel": "^0.5.0",
-    "rtc-filter-grayscale": "~0.1.0",
     "async": "^0.9",
+    "crel": "^1",
     "freeice": "^1",
-    "testling": "^1.6.1"
+    "rtc-bufferedchannel": "^0.5.0",
+    "rtc-captureconfig": "^1",
+    "rtc-filter-grayscale": "~0.1.0",
+    "rtc-media": "^1",
+    "rtc-switchboard": "^0.10.1",
+    "rtc-videoproc": "^0.11.0",
+    "tape": "^2",
+    "testling": "^1.6.1",
+    "uuid": "~1.4.1",
+    "whisk": "^0.6.2"
   },
   "testling": {
     "files": "test/all.js",
