@@ -10,7 +10,14 @@ var signallingServer = location.origin;
 // require('cog/logger').enable('rtc-quickconnect');
 
 test('peer:connect', function(t) {
-  var qc, timer;
+  var qc;
+  var timer;
+  var statsArgs = [ gotStats, function() {} ];
+
+  function gotStats(stats) {
+    t.pass('got stats');
+    clearTimeout(timer);
+  }
 
   t.plan(5);
 
@@ -20,11 +27,7 @@ test('peer:connect', function(t) {
 
     qc.once('channel:opened:et', function() {
       t.pass('data channel open');
-
-      pc.getStats(function(stats) {
-        t.pass('got stats');
-        clearTimeout(timer);
-      });
+      pc.getStats.apply(pc, (pc.getStats.length === 3 ? [null] : []).concat(statsArgs));
     });
 
     qc.createDataChannel('et');
