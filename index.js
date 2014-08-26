@@ -114,6 +114,10 @@ module.exports = function(signalhost, opts) {
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
 
+  // check how many local streams have been expected (default: 0)
+  var expectedLocalStreams = (opts || {}).expectedLocalStreams || 0;
+  var announceTimer = 0;
+
   function callCreate(id, pc, data) {
     calls.set(id, {
       active: false,
@@ -183,6 +187,25 @@ module.exports = function(signalhost, opts) {
       // iterate through any remote streams
       streams.forEach(receiveRemoteStream(id));
     });
+  }
+
+  function checkReadyToAnnounce() {
+    clearTimeout(announceTimer);
+
+    // if we are waiting for a set number of streams, then wait until we have
+    // the required number
+    if (expectedLocalStreams && localStreams.length < expectedLocalStreams) {
+      return;
+    }
+
+    // announce ourselves to our new friend
+    announceTimer = setTimeout(function() {
+      var data = extend({}, profile, { room: room });
+
+      // announce and emit the local announce event
+      signaller.announce(data);
+      announced = true;
+    }, 0);
   }
 
   function createStreamAddHandler(id) {
@@ -375,15 +398,6 @@ module.exports = function(signalhost, opts) {
   signaller.on('peer:update', handlePeerUpdate);
   signaller.on('peer:leave', callEnd);
 
-  // announce ourselves to our new friend
-  setTimeout(function() {
-    var data = extend({}, profile, { room: room });
-
-    // announce and emit the local announce event
-    signaller.announce(data);
-    announced = true;
-  }, 0);
-
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
 
@@ -412,6 +426,7 @@ module.exports = function(signalhost, opts) {
       data.pc.addStream(stream);
     });
 
+    checkReadyToAnnounce();
     return signaller;
   };
 
@@ -649,6 +664,9 @@ module.exports = function(signalhost, opts) {
 
   // respond to local announce messages
   signaller.on('local:announce', handleLocalAnnounce);
+
+  // check to see if we are ready to announce
+  checkReadyToAnnounce();
 
   // pass the signaller on
   return signaller;
