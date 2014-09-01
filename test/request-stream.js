@@ -3,7 +3,7 @@ var connections = [];
 var media = require('rtc-media');
 var localStream;
 
-require('cog/logger').enable('rtc-quickconnect');
+// require('cog/logger').enable('rtc-quickconnect');
 
 test('capture stream', function(t) {
   t.plan(1);

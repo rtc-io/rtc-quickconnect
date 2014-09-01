@@ -7,7 +7,7 @@ var roomId = uuid.v4();
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
-require('cog/logger').enable('rtc-quickconnect');
+// require('cog/logger').enable('rtc-quickconnect');
 
 test('create connection:0 (id = "a")', function(t) {
   var qc;
