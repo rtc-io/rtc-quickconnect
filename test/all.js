@@ -25,4 +25,7 @@ if (! detect.moz) {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=857115
   require('./reactive');
   require('./reactive-stream-events');
+
+  // multiparty reactive
+  require('./multipart-reactive');
 }
