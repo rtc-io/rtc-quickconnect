@@ -27,5 +27,5 @@ if (! detect.moz) {
   require('./reactive-stream-events');
 
   // multiparty reactive
-  require('./multipart-reactive');
+  require('./multiparty-reactive');
 }
