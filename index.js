@@ -359,6 +359,11 @@ module.exports = function(signalhost, opts) {
     }
   }
 
+  function handlePeerFilter(evt) {
+    // only connect with the peer if we are ready
+    evt.allow = evt.allow && (localStreams.length >= expectedLocalStreams);
+  }
+
   function handlePeerUpdate(data) {
     var id = data && data.id;
     var activeCall = id && calls.get(id);
@@ -668,6 +673,12 @@ module.exports = function(signalhost, opts) {
       }
     });
   };
+
+  // if we have an expected number of local streams, then use a filter to
+  // check if we should respond
+  if (expectedLocalStreams) {
+    signaller.on('peer:filter', handlePeerFilter);
+  }
 
   // respond to local announce messages
   signaller.on('local:announce', handleLocalAnnounce);
