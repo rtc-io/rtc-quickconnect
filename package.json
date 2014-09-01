@@ -24,7 +24,7 @@
     "cog": "^1",
     "rtc-core": "^3",
     "rtc-signaller": "^2.4.0",
-    "rtc-tools": "^3.0.0"
+    "rtc-tools": "rtc-io/rtc-tools#new-queues"
   },
   "devDependencies": {
     "async": "^0.9",
