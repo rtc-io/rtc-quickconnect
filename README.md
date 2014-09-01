@@ -199,7 +199,7 @@ document.body.appendChild(remote);
 
 
 ## Regarding Signalling and a Signalling Server
-
+Local
 Signaling is an important part of setting up a WebRTC connection and for
 our examples we use our own test instance of the
 [rtc-switchboard](https://github.com/rtc-io/rtc-switchboard). For your
@@ -237,6 +237,13 @@ Listed below are some of the commonly used options:
   `ns`.
 
 - `debug` (default: false)
+
+- `expectedLocalStreams` (default: not specified) _added 3.0_
+
+  By providing a positive integer value for this option will mean that
+  the created quickconnect instance will wait until the specified number of
+  streams have been added to the quickconnect "template" before announcing
+  to the signaling server.
 
 Write rtc.io suite debug output to the browser console.
 
