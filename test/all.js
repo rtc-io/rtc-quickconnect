@@ -18,7 +18,6 @@ require('./request-stream');
 require('./events');
 
 require('./wait-for-streams-single');
-require('./wait-for-streams-multiple');
 
 // we need some firefox issues resolved before all tests can be run
 if (! detect.moz) {
@@ -28,6 +27,9 @@ if (! detect.moz) {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=857115
   require('./reactive');
   require('./reactive-stream-events');
+
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=784517
+  require('./wait-for-streams-multiple');
 
   // multiparty reactive
   require('./multiparty-reactive');
