@@ -17,6 +17,9 @@ require('./custom-id');
 require('./request-stream');
 require('./events');
 
+require('./wait-for-streams-single');
+require('./wait-for-streams-multiple');
+
 // we need some firefox issues resolved before all tests can be run
 if (! detect.moz) {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=852665
