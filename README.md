@@ -238,6 +238,12 @@ Listed below are some of the commonly used options:
 
 - `debug` (default: false)
 
+- `manualJoin` (default: `false`)
+
+  Set this value to `true` if you would prefer to call the `join` function
+  to connecting to the signalling server, rather than having that happen
+  automatically as soon as quickconnect is ready to.
+
 Write rtc.io suite debug output to the browser console.
 
 #### Options for Peer Connection Creation
@@ -300,6 +306,12 @@ var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
 
 Then when the data channel is ready for use, a `test:open` event would
 be emitted by `qc`.
+
+#### join()
+
+The `join` function is used when `manualJoin` is set to true when creating
+a quickconnect instance.  Call the `join` function once you are ready to
+join the signalling server and initiate connections with other people.
 
 #### reactive()
 
