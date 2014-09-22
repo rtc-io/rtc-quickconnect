@@ -199,7 +199,7 @@ document.body.appendChild(remote);
 
 
 ## Regarding Signalling and a Signalling Server
-Local
+
 Signaling is an important part of setting up a WebRTC connection and for
 our examples we use our own test instance of the
 [rtc-switchboard](https://github.com/rtc-io/rtc-switchboard). For your
@@ -238,6 +238,8 @@ Listed below are some of the commonly used options:
 
 - `debug` (default: false)
 
+Write rtc.io suite debug output to the browser console.
+
 - `expectedLocalStreams` (default: not specified) _added 3.0_
 
   By providing a positive integer value for this option will mean that
@@ -245,7 +247,11 @@ Listed below are some of the commonly used options:
   streams have been added to the quickconnect "template" before announcing
   to the signaling server.
 
-Write rtc.io suite debug output to the browser console.
+- `manualJoin` (default: `false`)
+
+  Set this value to `true` if you would prefer to call the `join` function
+  to connecting to the signalling server, rather than having that happen
+  automatically as soon as quickconnect is ready to.
 
 #### Options for Peer Connection Creation
 
@@ -307,6 +313,12 @@ var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
 
 Then when the data channel is ready for use, a `test:open` event would
 be emitted by `qc`.
+
+#### join()
+
+The `join` function is used when `manualJoin` is set to true when creating
+a quickconnect instance.  Call the `join` function once you are ready to
+join the signalling server and initiate connections with other people.
 
 #### reactive()
 

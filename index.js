@@ -32,7 +32,7 @@ var reTrailingSlash = /\/$/;
   <<< docs/examples.md
 
   ## Regarding Signalling and a Signalling Server
-Local
+
   Signaling is an important part of setting up a WebRTC connection and for
   our examples we use our own test instance of the
   [rtc-switchboard](https://github.com/rtc-io/rtc-switchboard). For your
@@ -71,6 +71,8 @@ Local
 
   - `debug` (default: false)
 
+  Write rtc.io suite debug output to the browser console.
+
   - `expectedLocalStreams` (default: not specified) _added 3.0_
 
     By providing a positive integer value for this option will mean that
@@ -78,7 +80,11 @@ Local
     streams have been added to the quickconnect "template" before announcing
     to the signaling server.
 
-  Write rtc.io suite debug output to the browser console.
+  - `manualJoin` (default: `false`)
+
+    Set this value to `true` if you would prefer to call the `join` function
+    to connecting to the signalling server, rather than having that happen
+    automatically as soon as quickconnect is ready to.
 
   #### Options for Peer Connection Creation
 
@@ -106,6 +112,7 @@ module.exports = function(signalhost, opts) {
   var ns = (opts || {}).ns || '';
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
+  var allowJoin = !(opts || {}).manualJoin;
   var profile = {};
   var announced = false;
 
@@ -198,6 +205,9 @@ module.exports = function(signalhost, opts) {
 
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
+    if (! allowJoin) {
+      return;
+    }
 
     // if we are waiting for a set number of streams, then wait until we have
     // the required number
@@ -502,6 +512,19 @@ module.exports = function(signalhost, opts) {
     channels[label] = opts || null;
 
     return signaller;
+  };
+
+  /**
+    #### join()
+
+    The `join` function is used when `manualJoin` is set to true when creating
+    a quickconnect instance.  Call the `join` function once you are ready to
+    join the signalling server and initiate connections with other people.
+
+  **/
+  signaller.join = function() {
+    allowJoin = true;
+    checkReadyToAnnounce();
   };
 
   /**
