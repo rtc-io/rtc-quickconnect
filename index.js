@@ -105,7 +105,7 @@ module.exports = function(signalhost, opts) {
   var ns = (opts || {}).ns || '';
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
-  var allowJoin = !!(opts || {}).manualJoin;
+  var allowJoin = !(opts || {}).manualJoin;
   var profile = {};
   var announced = false;
 
