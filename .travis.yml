@@ -1,6 +1,10 @@
 language: node_js
 node_js:
 - 0.10
+notifications:
+  email:
+  - damon.oehlman@nicta.com.au
+  irc: irc.freenode.org#rtc.io
 
 env:
   matrix:
@@ -11,6 +15,13 @@ env:
     - BROWSER=firefox BVER=beta
     - BROWSER=firefox BVER=nightly
 
+matrix:
+  fast_finish: true
+
+  allowed_failures:
+    - env: BROWSER=chrome  BVER=unstable
+    - env: BROWSER=firefox BVER=nightly
+
 before_install:
   - mkdir -p .travis
   - curl -s https://codeload.github.com/rtc-io/webrtc-testing-on-travis/tar.gz/master | tar -xz --strip-components=1 --directory .travis
@@ -20,9 +31,3 @@ before_install:
 
 after_failure:
   - for file in *.log; do echo $file; echo "======================"; cat $file; done || true
-
-notifications:
-  email:
-  - damon.oehlman@nicta.com.au
-
-  irc: irc.freenode.org#rtc.io
