@@ -4,7 +4,6 @@
 var rtc = require('rtc-tools');
 var cleanup = require('rtc-tools/cleanup');
 var debug = rtc.logger('rtc-quickconnect');
-var signaller = require('rtc-signaller');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var getable = require('cog/getable');
@@ -129,7 +128,7 @@ module.exports = function(signalhost, opts) {
   var plugins = signaller.plugins = (opts || {}).plugins || [];
 
   // check how many local streams have been expected (default: 0)
-  var expectedLocalStreams = (opts || {}).expectedLocalStreams || 0;
+  var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
 
   function callCreate(id, pc, data) {
@@ -158,10 +157,10 @@ module.exports = function(signalhost, opts) {
       var args = [id, channel, label];
 
       // emit the plain channel:closed event
-      signaller.emit.apply(signaller, ['channel:closed'].concat(args));
+      signaller.apply(signaller, ['channel:closed'].concat(args));
 
       // emit the labelled version of the event
-      signaller.emit.apply(signaller, ['channel:closed:' + label].concat(args));
+      signaller.apply(signaller, ['channel:closed:' + label].concat(args));
 
       // decouple the events
       channel.onopen = null;
@@ -169,14 +168,14 @@ module.exports = function(signalhost, opts) {
 
     // trigger stream:removed events for each of the remotestreams in the pc
     call.streams.forEach(function(stream) {
-      signaller.emit('stream:removed', id, stream);
+      signaller('stream:removed', id, stream);
     });
 
     // delete the call data
     calls.delete(id);
 
     // trigger the call:ended event
-    signaller.emit('call:ended', id, call.pc);
+    signaller('call:ended', id, call.pc);
 
     // ensure the peer connection is properly cleaned up
     cleanup(call.pc);
@@ -194,7 +193,7 @@ module.exports = function(signalhost, opts) {
     pc.onremovestream = createStreamRemoveHandler(id);
 
     debug(signaller.id + ' - ' + id + ' call start: ' + streams.length + ' streams');
-    signaller.emit('call:started', id, pc, data);
+    signaller('call:started', id, pc, data);
 
     // examine the existing remote streams after a short delay
     process.nextTick(function() {
@@ -237,7 +236,7 @@ module.exports = function(signalhost, opts) {
     return function(evt) {
       debug('peer ' + id + ' removed stream');
       updateRemoteStreams(id);
-      signaller.emit('stream:removed', id, evt.stream);
+      signaller('stream:removed', id, evt.stream);
     };
   }
 
@@ -272,10 +271,10 @@ module.exports = function(signalhost, opts) {
       debug('triggering channel:opened events for channel: ' + channel.label);
 
       // emit the plain channel:opened event
-      signaller.emit.apply(signaller, ['channel:opened'].concat(args));
+      signaller.apply(signaller, ['channel:opened'].concat(args));
 
       // emit the channel:opened:%label% eve
-      signaller.emit.apply(
+      signaller.apply(
         signaller,
         ['channel:opened:' + channel.label].concat(args)
       );
@@ -316,7 +315,7 @@ module.exports = function(signalhost, opts) {
 
     // create a peer connection
     pc = rtc.createConnection(opts, (opts || {}).constraints);
-    signaller.emit('peer:connect', data.id, pc, data);
+    signaller('peer:connect', data.id, pc, data);
 
     // add this connection to the calls list
     callCreate(data.id, pc, data);
@@ -355,7 +354,7 @@ module.exports = function(signalhost, opts) {
     // couple the connections
     debug('coupling ' + signaller.id + ' to ' + data.id);
     monitor = rtc.couple(pc, data.id, signaller, opts);
-    signaller.emit('peer:couple', data.id, pc, data, monitor);
+    signaller('peer:couple', data.id, pc, data, monitor);
 
     // once active, trigger the peer connect event
     monitor.once('connected', callStart.bind(null, data.id, pc, data))
@@ -390,7 +389,7 @@ module.exports = function(signalhost, opts) {
     var call = calls.get(id);
 
     return function(stream) {
-      signaller.emit('stream:added', id, stream, call && call.data);
+      signaller('stream:added', id, stream, call && call.data);
     };
   }
 
