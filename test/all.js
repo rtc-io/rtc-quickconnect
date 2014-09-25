@@ -16,6 +16,7 @@ require('./datachannel');
 require('./custom-id');
 require('./request-stream');
 require('./events');
+require('./bus-events');
 
 require('./wait-for-streams-single');
 
