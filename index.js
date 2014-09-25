@@ -2,6 +2,7 @@
 'use strict';
 
 var rtc = require('rtc-tools');
+var mbus = require('mbus');
 var cleanup = require('rtc-tools/cleanup');
 var debug = rtc.logger('rtc-quickconnect');
 var defaults = require('cog/defaults');
@@ -353,7 +354,10 @@ module.exports = function(signalhost, opts) {
 
     // couple the connections
     debug('coupling ' + signaller.id + ' to ' + data.id);
-    monitor = rtc.couple(pc, data.id, signaller, opts);
+    monitor = rtc.couple(pc, data.id, signaller, extend({}, opts, {
+      logger: mbus('peer.' + data.id, signaller)
+    }));
+
     signaller('peer:couple', data.id, pc, data, monitor);
 
     // once active, trigger the peer connect event
