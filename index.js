@@ -355,7 +355,7 @@ module.exports = function(signalhost, opts) {
     // couple the connections
     debug('coupling ' + signaller.id + ' to ' + data.id);
     monitor = rtc.couple(pc, data.id, signaller, extend({}, opts, {
-      logger: mbus('peer.' + data.id, signaller)
+      logger: mbus('pc.' + data.id, signaller)
     }));
 
     signaller('peer:couple', data.id, pc, data, monitor);
