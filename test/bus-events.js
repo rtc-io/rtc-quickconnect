@@ -30,19 +30,19 @@ test('create connector 1 - get bus events', function(t) {
 
   t.equal(typeof connections[1].createDataChannel, 'function', 'has a createDataChannel function');
 
-  connections[0].feed(function(evt) {
-    console.log('0: ' + evt.name);
-  });
+//   connections[0].feed(function(evt) {
+//     console.log('0: ' + evt.name);
+//   });
 
-  connections[1].feed(function(evt) {
-    console.log('1: ' + evt.name);
-  });
+//   connections[1].feed(function(evt) {
+//     console.log('1: ' + evt.name);
+//   });
 
-  connections[0].once('peer.' + connections[1].id + '.connected', function() {
+  connections[0].once('pc.' + connections[1].id + '.connected', function() {
     t.pass('connection 0 has recognised connection from connection 1');
   });
 
-  connections[1].once('peer.' + connections[0].id + '.connected', function() {
+  connections[1].once('pc.' + connections[0].id + '.connected', function() {
     t.pass('connection 1 has recognised connection from connection 0');
   });
 
