@@ -35,7 +35,7 @@
     "rtc-captureconfig": "^1",
     "rtc-filter-grayscale": "~0.1.0",
     "rtc-media": "^1",
-    "rtc-switchboard": "^0.10.1",
+    "rtc-switchboard": "^1.2.0",
     "rtc-videoproc": "^0.11.0",
     "tape": "^2",
     "testling": "^1.6.1",
