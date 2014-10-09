@@ -29,7 +29,7 @@ test('create 4 connections', function(t) {
 });
 
 
-test('connection matrix established', function(t) {
+test('establish connection matrix', function(t) {
   t.plan(connections.length * (connections.length - 1));
 
   connections.forEach(function(conn) {
