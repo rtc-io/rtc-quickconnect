@@ -116,6 +116,10 @@ module.exports = function(signalhost, opts) {
   var profile = {};
   var announced = false;
 
+  // initialise iceServers to undefined
+  // we will not announce until these have been properly initialised
+  var iceServers;
+
   // collect the local streams
   var localStreams = [];
 
@@ -206,6 +210,11 @@ module.exports = function(signalhost, opts) {
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
     if (! allowJoin) {
+      return;
+    }
+
+    // if we have no iceServers we aren't ready
+    if (! iceServers) {
       return;
     }
 
@@ -315,7 +324,12 @@ module.exports = function(signalhost, opts) {
     }
 
     // create a peer connection
-    pc = rtc.createConnection(opts, (opts || {}).constraints);
+    // iceServers that have been created using genice taking precendence
+    pc = rtc.createConnection(
+      extend({}, opts, { iceServers: iceServers }),
+      (opts || {}).constraints
+    );
+
     signaller('peer:connect', data.id, pc, data);
 
     // add this connection to the calls list
@@ -709,8 +723,15 @@ module.exports = function(signalhost, opts) {
   // respond to local announce messages
   signaller.on('local:announce', handleLocalAnnounce);
 
-  // check to see if we are ready to announce
-  checkReadyToAnnounce();
+  // use genice to find our iceServers
+  require('rtc-core/genice')(opts, function(err, servers) {
+    if (err) {
+      return console.error('could not find iceServers: ', err);
+    }
+
+    iceServers = servers;
+    checkReadyToAnnounce();
+  });
 
   // pass the signaller on
   return signaller;
