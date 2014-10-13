@@ -6,11 +6,12 @@ var times = require('whisk/times');
 var pluck = require('whisk/pluck');
 var dcs = [];
 var testStream = new AudioContext().createMediaStreamDestination().stream;
+var connectionCount = 5;
 
 // require('cog/logger').enable('rtc-quickconnect');
 
-test('create 4 connections', function(t) {
-  connections = times(6).map(function() {
+test('create ' + connectionCount + ' connections', function(t) {
+  connections = times(connectionCount).map(function() {
     var qc = quickconnect(location.origin, {
       room: roomId,
       reactive: true,
