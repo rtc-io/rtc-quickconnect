@@ -6,7 +6,7 @@ var times = require('whisk/times');
 var pluck = require('whisk/pluck');
 var dcs = [];
 var testStream = new AudioContext().createMediaStreamDestination().stream;
-var connectionCount = 5;
+var connectionCount = 3;
 
 // require('cog/logger').enable('rtc-quickconnect');
 
