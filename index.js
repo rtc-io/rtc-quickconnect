@@ -4,6 +4,7 @@
 var rtc = require('rtc-tools');
 var mbus = require('mbus');
 var cleanup = require('rtc-tools/cleanup');
+var detectPlugin = require('rtc-core/plugin');
 var debug = rtc.logger('rtc-quickconnect');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
@@ -131,6 +132,8 @@ module.exports = function(signalhost, opts) {
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
+  var plugin = detectPlugin(signaller.plugins);
+  var pluginReady;
 
   // check how many local streams have been expected (default: 0)
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
@@ -210,6 +213,11 @@ module.exports = function(signalhost, opts) {
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
     if (! allowJoin) {
+      return;
+    }
+
+    // if we have a plugin but it's not initialized we aren't ready
+    if (plugin && (! pluginReady)) {
       return;
     }
 
@@ -305,6 +313,17 @@ module.exports = function(signalhost, opts) {
         channelReady();
       }
     }, 500);
+  }
+
+  function initPlugin() {
+    return plugin && plugin.init(opts, function(err) {
+      if (err) {
+        return console.error('Could not initialize plugin: ', err);
+      }
+
+      pluginReady = true;
+      checkReadyToAnnounce();
+    });
   }
 
   function handleLocalAnnounce(data) {
@@ -732,6 +751,11 @@ module.exports = function(signalhost, opts) {
     iceServers = servers;
     checkReadyToAnnounce();
   });
+
+  // if we plugin is active, then initialize it
+  if (plugin) {
+    initPlugin();
+  }
 
   // pass the signaller on
   return signaller;
