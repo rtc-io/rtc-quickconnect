@@ -212,6 +212,11 @@ module.exports = function(signalhost, opts) {
 
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
+    // if we have already announced do nothing!
+    if (announced) {
+      return;
+    }
+
     if (! allowJoin) {
       return;
     }
