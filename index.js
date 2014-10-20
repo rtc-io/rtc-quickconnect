@@ -459,7 +459,6 @@ module.exports = function(signalhost, opts) {
 
   signaller.on('peer:announce', handlePeerAnnounce);
   signaller.on('peer:update', handlePeerUpdate);
-  signaller.on('peer:leave', callEnd);
 
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
