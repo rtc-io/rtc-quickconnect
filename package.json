@@ -1,6 +1,6 @@
 {
   "name": "rtc-quickconnect",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
