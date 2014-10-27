@@ -24,8 +24,9 @@
     "cog": "^1",
     "mbus": "^1.3.1",
     "rtc-core": "^4.0.0",
-    "rtc-signaller": "^3.0.0",
-    "rtc-tools": "^4.1.0"
+    "rtc-signaller": "^5.0.0",
+    "rtc-switchboard-messenger": "^1.0.0",
+    "rtc-tools": "^4.2.0"
   },
   "devDependencies": {
     "async": "^0.9",
@@ -35,7 +36,7 @@
     "rtc-captureconfig": "^2.1.0",
     "rtc-filter-grayscale": "~0.1.0",
     "rtc-media": "^1",
-    "rtc-switchboard": "^1.2.1",
+    "rtc-switchboard": "^2.0.0",
     "rtc-videoproc": "^0.11.0",
     "tape": "^3.0.0",
     "testling": "^1.6.1",
