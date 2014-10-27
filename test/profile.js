@@ -14,7 +14,7 @@ test('create test participant', function(t) {
   });
 
   clients[0].once('connected', t.pass.bind(t, 'connected to the signaling server'));
-  clients[0].once('roominfo', function(data) {
+  clients[0].once('message:roominfo', function(data) {
     t.ok(data && data.memberCount === 1, 'got correct membercount');
   });
 });
@@ -32,7 +32,7 @@ test('announce with additional profile information', function(t) {
   });
 
   clients[1].once('connected', t.pass.bind(t, 'connected to the signaling server'));
-  clients[1].once('roominfo', function(data) {
+  clients[1].once('message:roominfo', function(data) {
     t.ok(data && data.memberCount === 2, 'got correct membercount');
   });
 
