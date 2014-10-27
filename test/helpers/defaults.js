@@ -3,5 +3,5 @@ var remoteSignaller = '//switchboard.rtc.io';
 // var remoteSignaller = 'http://localhost:3000';
 
 module.exports = {
-  signallingServer: isTestling ? location.origin : remoteSignaller
+  signallingServer: require('./signaling-server') // isTestling ? location.origin : remoteSignaller
 };
