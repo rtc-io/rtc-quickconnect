@@ -9,6 +9,7 @@ var debug = rtc.logger('rtc-quickconnect');
 var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var getable = require('cog/getable');
+var messenger = require('./messenger');
 var reTrailingSlash = /\/$/;
 
 /**
@@ -107,7 +108,7 @@ var reTrailingSlash = /\/$/;
 **/
 module.exports = function(signalhost, opts) {
   var hash = typeof location != 'undefined' && location.hash.slice(1);
-  var signaller = require('rtc-signaller')(signalhost, opts);
+  var signaller = require('rtc-signaller')(messenger(signalhost), opts);
 
   // init configurable vars
   var ns = (opts || {}).ns || '';
