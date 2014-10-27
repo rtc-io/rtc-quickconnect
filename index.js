@@ -140,12 +140,11 @@ module.exports = function(signalhost, opts) {
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
 
-  function callCreate(id, pc, data) {
+  function callCreate(id, pc) {
     calls.set(id, {
       active: false,
       pc: pc,
       channels: getable({}),
-      data: data,
       streams: []
     });
   }
@@ -248,6 +247,82 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
+  function connect(id) {
+    var data = getPeerData(id);
+    var pc;
+    var monitor;
+
+    // if the room is not a match, abort
+    if (data.room !== room) {
+      return;
+    }
+
+    // end any call to this id so we know we are starting fresh
+    callEnd(id);
+
+    // create a peer connection
+    // iceServers that have been created using genice taking precendence
+    pc = rtc.createConnection(
+      extend({}, opts, { iceServers: iceServers }),
+      (opts || {}).constraints
+    );
+
+    signaller('peer:connect', data.id, pc, data);
+
+    // add this connection to the calls list
+    callCreate(data.id, pc);
+
+    // add the local streams
+    localStreams.forEach(function(stream, idx) {
+      pc.addStream(stream);
+    });
+
+    // add the data channels
+    // do this differently based on whether the connection is a
+    // master or a slave connection
+    if (signaller.isMaster(data.id)) {
+      debug('is master, creating data channels: ', Object.keys(channels));
+
+      // create the channels
+      Object.keys(channels).forEach(function(label) {
+       gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
+      });
+    }
+    else {
+      pc.ondatachannel = function(evt) {
+        var channel = evt && evt.channel;
+
+        // if we have no channel, abort
+        if (! channel) {
+          return;
+        }
+
+        if (channels[channel.label] !== undefined) {
+          gotPeerChannel(channel, pc, getPeerData(id));
+        }
+      };
+    }
+
+    // couple the connections
+    debug('coupling ' + signaller.id + ' to ' + data.id);
+    monitor = rtc.couple(pc, id, signaller, extend({}, opts, {
+      logger: mbus('pc.' + id, signaller)
+    }));
+
+    signaller('peer:couple', id, pc, data, monitor);
+
+    // once active, trigger the peer connect event
+    monitor.once('connected', callStart.bind(null, id, pc, data))
+    monitor.once('closed', callEnd.bind(null, id));
+
+    // if we are the master connnection, create the offer
+    // NOTE: this only really for the sake of politeness, as rtc couple
+    // implementation handles the slave attempting to create an offer
+    if (signaller.isMaster(id)) {
+      monitor.createOffer();
+    }
+  }
+
   function createStreamAddHandler(id) {
     return function(evt) {
       debug('peer ' + id + ' added stream');
@@ -272,6 +347,12 @@ module.exports = function(signalhost, opts) {
     }
 
     return call;
+  }
+
+  function getPeerData(id) {
+    var peer = signaller.peers.get(id);
+
+    return peer && peer.data;
   }
 
   function gotPeerChannel(channel, pc, data) {
@@ -339,78 +420,6 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function handlePeerAnnounce(data) {
-    var pc;
-    var monitor;
-
-    // if the room is not a match, abort
-    if (data.room !== room) {
-      return;
-    }
-
-    // create a peer connection
-    // iceServers that have been created using genice taking precendence
-    pc = rtc.createConnection(
-      extend({}, opts, { iceServers: iceServers }),
-      (opts || {}).constraints
-    );
-
-    signaller('peer:connect', data.id, pc, data);
-
-    // add this connection to the calls list
-    callCreate(data.id, pc, data);
-
-    // add the local streams
-    localStreams.forEach(function(stream, idx) {
-      pc.addStream(stream);
-    });
-
-    // add the data channels
-    // do this differently based on whether the connection is a
-    // master or a slave connection
-    if (signaller.isMaster(data.id)) {
-      debug('is master, creating data channels: ', Object.keys(channels));
-
-      // create the channels
-      Object.keys(channels).forEach(function(label) {
-       gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
-      });
-    }
-    else {
-      pc.ondatachannel = function(evt) {
-        var channel = evt && evt.channel;
-
-        // if we have no channel, abort
-        if (! channel) {
-          return;
-        }
-
-        if (channels[channel.label] !== undefined) {
-          gotPeerChannel(channel, pc, data);
-        }
-      };
-    }
-
-    // couple the connections
-    debug('coupling ' + signaller.id + ' to ' + data.id);
-    monitor = rtc.couple(pc, data.id, signaller, extend({}, opts, {
-      logger: mbus('pc.' + data.id, signaller)
-    }));
-
-    signaller('peer:couple', data.id, pc, data, monitor);
-
-    // once active, trigger the peer connect event
-    monitor.once('connected', callStart.bind(null, data.id, pc, data))
-    monitor.once('closed', callEnd.bind(null, data.id));
-
-    // if we are the master connnection, create the offer
-    // NOTE: this only really for the sake of politeness, as rtc couple
-    // implementation handles the slave attempting to create an offer
-    if (signaller.isMaster(data.id)) {
-      monitor.createOffer();
-    }
-  }
-
   function handlePeerFilter(id, data) {
     // only connect with the peer if we are ready
     data.allow = data.allow && (localStreams.length >= expectedLocalStreams);
@@ -424,7 +433,8 @@ module.exports = function(signalhost, opts) {
     // then pass this onto the announce handler
     if (id && (! activeCall)) {
       debug('received peer update from peer ' + id + ', no active calls');
-      return handlePeerAnnounce(data);
+      signaller.to(id).send('/reconnect');
+      return connect(id);
     }
   }
 
@@ -432,7 +442,7 @@ module.exports = function(signalhost, opts) {
     var call = calls.get(id);
 
     return function(stream) {
-      signaller('stream:added', id, stream, call && call.data);
+      signaller('stream:added', id, stream, getPeerData(id));
     };
   }
 
@@ -458,8 +468,17 @@ module.exports = function(signalhost, opts) {
     rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
   }
 
-  signaller.on('peer:announce', handlePeerAnnounce);
+  signaller.on('peer:announce', function(data) {
+    connect(data.id);
+  });
+
   signaller.on('peer:update', handlePeerUpdate);
+
+  signaller.on('message:reconnect', function(sender) {
+    connect(sender.id);
+  });
+
+
 
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
@@ -545,7 +564,7 @@ module.exports = function(signalhost, opts) {
       // if we are the master connection, create the data channel
       if (call && call.pc && signaller.isMaster(peerId)) {
         dc = call.pc.createDataChannel(label, opts);
-        gotPeerChannel(dc, call.pc, call.data);
+        gotPeerChannel(dc, call.pc, getPeerData(peerId));
       }
     });
 
