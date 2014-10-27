@@ -411,9 +411,9 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function handlePeerFilter(evt) {
+  function handlePeerFilter(id, data) {
     // only connect with the peer if we are ready
-    evt.allow = evt.allow && (localStreams.length >= expectedLocalStreams);
+    data.allow = data.allow && (localStreams.length >= expectedLocalStreams);
   }
 
   function handlePeerUpdate(data) {
