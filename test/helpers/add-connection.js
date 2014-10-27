@@ -12,7 +12,6 @@ module.exports = function(roomId, connections) {
       t.ok(peerIdx >= 0, 'connected with ' + peerId);
       pending.splice(peerIdx, 1);
 
-      console.log(pending);
       if (pending.length === 0) {
         conn.removeListener('call:started', handleCallStart);
       }

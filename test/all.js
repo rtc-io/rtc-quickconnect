@@ -17,8 +17,9 @@ require('./custom-id');
 require('./request-stream');
 // require('./events');
 require('./bus-events');
-
 require('./wait-for-streams-single');
+require('./multiparty');
+
 
 // we need some firefox issues resolved before all tests can be run
 if (! detect.moz) {
