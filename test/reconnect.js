@@ -107,14 +107,10 @@ test('end calls on connection 0 and wait for dc close notifications', function(t
 });
 
 test('announce connection:0 in empty room (leave room)', function(t) {
-  t.plan(2);
+  t.plan(1);
 
   connections[0].once('local:announce', function(data) {
     t.equal(data.room, '', 'announcing with empty room');
-  });
-
-  connections[1].once('peer:leave', function(id) {
-    t.equal(id, connections[0].id, 'connection:1 received peer:leave for connection:0');
   });
 
   connections[0].announce({ room: '' });
@@ -127,8 +123,8 @@ test('announce connection:0 in original room', function(t) {
     t.equal(data.room, room, 'announcing in original room');
   });
 
-  connections[1].once('peer:announce', function(data) {
-    t.equal(data.id, connections[0].id, 'connection:1 receiver peer:announce for connection:0');
+  connections[1].once('peer:update', function(data) {
+    t.equal(data.id, connections[0].id, 'connection:1 receiver peer:update for connection:0');
     t.equal(data.room, room, 'room is as expected');
   });
 

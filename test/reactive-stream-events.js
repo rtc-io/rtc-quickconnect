@@ -55,5 +55,5 @@ test('stream:removed triggered when connection:1 leaves', function(t) {
     t.ok(stream instanceof MediaStream, 'got stream');
   });
 
-  connections[1].leave();
+  connections[1].close();
 });
