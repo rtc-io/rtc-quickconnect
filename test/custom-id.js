@@ -4,6 +4,7 @@ var uuid = require('uuid');
 var connections = [];
 var dcs = [];
 var roomId = uuid.v4();
+var validConnectionStates = ['connected', 'completed'];
 // var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
@@ -42,7 +43,7 @@ test('check call active', function(t) {
     conn.waitForCall(connections[index ^ 1].id, function(err, pc) {
       t.ifError(err, 'call available');
       t.ok(pc, 'have peer connection');
-      t.equal(pc.iceConnectionState, 'connected', 'call connected');
+      t.ok(validConnectionStates.indexOf(pc.iceConnectionState) >= 0, 'call connected');
     });
   });
 });
