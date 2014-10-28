@@ -31,6 +31,7 @@ test('create ' + connectionCount + ' connections', function(t) {
 
 test('establish connection matrix', function(t) {
   t.plan(connections.length * (connections.length - 1));
+  console.log('waiting for ' + (connections.length * (connections.length - 1)) + ' connections');
 
   connections.forEach(function(conn) {
     var expected = connections.map(pluck('id')).filter(function(id) {
