@@ -52,7 +52,7 @@ test('add streams to the connections and call:started should trigger', function(
   connections[0].addStream(ac.createMediaStreamDestination().stream);
   connections[1].addStream(ac.createMediaStreamDestination().stream);
 
-  timer = setTimeout(t.fail.bind(t, 'call:started not triggered'), 3000);
+  timer = setTimeout(t.fail.bind(t, 'call:started not triggered'), 10000);
 });
 
 test('cleanup', function(t) {
