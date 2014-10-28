@@ -4,7 +4,7 @@ var uuid = require('uuid');
 var connections = [];
 var dcs = [];
 var roomId = uuid.v4();
-var connectionCount = 4;
+var connectionCount = 3;
 var times = require('whisk/times');
 var pluck = require('whisk/pluck');
 
@@ -24,7 +24,7 @@ test('create ' + connectionCount + ' connections', function(t) {
 
   t.plan(connections.length);
   connections.forEach(function(conn) {
-    conn.once('connected', t.pass.bind(t, 'connected'));
+    conn.once('connected', t.pass.bind(t, 'connected ' + conn.id));
   });
 });
 
