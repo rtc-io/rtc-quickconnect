@@ -115,6 +115,7 @@ module.exports = function(signalhost, opts) {
   var room = (opts || {}).room;
   var debugging = (opts || {}).debug;
   var allowJoin = !(opts || {}).manualJoin;
+  var heartbeat = (opts || {}).heartbeat || 2500;
   var profile = {};
   var announced = false;
 
@@ -139,13 +140,15 @@ module.exports = function(signalhost, opts) {
   // check how many local streams have been expected (default: 0)
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
+  var heartbeatTimer = 0;
 
   function callCreate(id, pc) {
     calls.set(id, {
       active: false,
       pc: pc,
       channels: getable({}),
-      streams: []
+      streams: [],
+      lastping: Date.now()
     });
   }
 
@@ -182,6 +185,11 @@ module.exports = function(signalhost, opts) {
     // delete the call data
     calls.delete(id);
 
+    // if we have no more calls, disable the heartbeat
+    if (calls.keys().length === 0) {
+      hbReset();
+    }
+
     // trigger the call:ended event
     signaller('call:ended', id, call.pc);
 
@@ -202,6 +210,9 @@ module.exports = function(signalhost, opts) {
 
     debug(signaller.id + ' - ' + id + ' call start: ' + streams.length + ' streams');
     signaller('call:started', id, pc, data);
+
+    // configure the heartbeat timer
+    hbInit();
 
     // examine the existing remote streams after a short delay
     process.nextTick(function() {
@@ -247,7 +258,7 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
-  function connect(id) {
+ function connect(id) {
     var data = getPeerData(id);
     var pc;
     var monitor;
@@ -402,6 +413,37 @@ module.exports = function(signalhost, opts) {
     }, 500);
   }
 
+  function hbInit() {
+    // if the heartbeat timer is active, or heartbeat has been disabled (0, false, etc) return
+    if (heartbeatTimer || (! heartbeat)) {
+      return;
+    }
+
+    heartbeatTimer = setInterval(hbSend, heartbeat);
+  }
+
+  function hbSend() {
+    var tickInactive = (Date.now() - (heartbeat * 4));
+
+    // iterate through our established calls
+    calls.keys().forEach(function(id) {
+      var call = calls.get(id);
+
+      // if the call ping is too old, end the call
+      if (call.lastping < tickInactive) {
+        return callEnd(id);
+      }
+
+      // send a ping message
+      signaller.to(id).send('/ping');
+    });
+  }
+
+  function hbReset() {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = 0;
+  }
+
   function initPlugin() {
     return plugin && plugin.init(opts, function(err) {
       if (err) {
@@ -435,6 +477,15 @@ module.exports = function(signalhost, opts) {
       debug('received peer update from peer ' + id + ', no active calls');
       signaller.to(id).send('/reconnect');
       return connect(id);
+    }
+  }
+
+  function handlePing(sender) {
+    var call = calls.get(sender && sender.id);
+
+    // set the last ping for the data
+    if (call) {
+      call.lastping = Date.now();
     }
   }
 
@@ -765,6 +816,9 @@ module.exports = function(signalhost, opts) {
 
   // respond to local announce messages
   signaller.on('local:announce', handleLocalAnnounce);
+
+  // handle ping messages
+  signaller.on('message:ping', handlePing);
 
   // use genice to find our iceServers
   require('rtc-core/genice')(opts, function(err, servers) {
