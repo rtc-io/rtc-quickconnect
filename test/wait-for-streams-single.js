@@ -23,8 +23,8 @@ test('quickconnect:1', function(t) {
 
 test('ensure calls do not start', function(t) {
   t.plan(1);
-  connections[0].once('call:started', t.fail);
-  connections[1].once('call:started', t.fail);
+  connections[0].once('call:started', t.fail.bind(t, 'call:triggered on connection:0'));
+  connections[1].once('call:started', t.fail.bind(t, 'call:triggered on connection:1'));
 
   setTimeout(function() {
     connections[0].removeAllListeners('call:started');
