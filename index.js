@@ -141,6 +141,7 @@ module.exports = function(signalhost, opts) {
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
   var heartbeatTimer = 0;
+  var updateTimer = 0;
 
   function callCreate(id, pc) {
     calls.set(id, {
@@ -774,7 +775,10 @@ module.exports = function(signalhost, opts) {
     // if we have already announced, then reannounce our profile to provide
     // others a `peer:update` event
     if (announced) {
-      signaller.announce(profile);
+      clearTimeout(updateTimer);
+      updateTimer = setTimeout(function() {
+        signaller.announce(profile);
+      }, (opts || {}).updateDelay || 1000);
     }
 
     return signaller;
