@@ -640,6 +640,15 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
+    #### `get(name)`
+
+    The `get` function returns the property value for the specified property name.
+  **/
+  signaller.get = function(name) {
+    return profile[name];
+  };
+
+  /**
     #### reactive()
 
     Flag that this session will be a reactive connection.
