@@ -11,7 +11,7 @@ configuration you should drill down into lower level components of the
 [![NPM](https://nodei.co/npm/rtc-quickconnect.png)](https://nodei.co/npm/rtc-quickconnect/)
 
 [![Build Status](https://img.shields.io/travis/rtc-io/rtc-quickconnect.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-quickconnect) [![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)](https://github.com/dominictarr/stability#unstable) 
-[![rtc.io google group](http://img.shields.io/badge/rtc.io-discuss-blue.svg)](https://groups.google.com/forum/#!forum/rtc-io)
+[![rtc.io google group](http://img.shields.io/badge/discuss-rtc.io-blue.svg)](https://groups.google.com/forum/#!forum/rtc-io)
 
 
 
