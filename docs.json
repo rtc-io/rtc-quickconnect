@@ -3,7 +3,7 @@
     "nodeico": true,
     "travis": true,
     "stability": "unstable",
-    "gitter": "rtc-io/discuss"
+    "group": "rtc-io"
   },
 
   "license": {
