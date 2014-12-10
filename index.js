@@ -251,7 +251,7 @@ module.exports = function(signalhost, opts) {
 
     // announce ourselves to our new friend
     announceTimer = setTimeout(function() {
-      var data = extend({}, profile, { room: room });
+      var data = extend({ room: room }, profile);
 
       // announce and emit the local announce event
       signaller.announce(data);
