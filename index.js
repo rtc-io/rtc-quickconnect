@@ -649,6 +649,15 @@ module.exports = function(signalhost, opts) {
   };
 
   /**
+    #### `getLocalStreams()`
+
+    Return a copy of the local streams that have currently been configured
+  **/
+  signaller.getLocalStreams = function() {
+    return [].concat(localStreams);
+  };
+
+  /**
     #### reactive()
 
     Flag that this session will be a reactive connection.
