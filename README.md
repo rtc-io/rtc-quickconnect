@@ -23,7 +23,7 @@ argument which tells quickconnect which server to use for signaling:
 ```js
 var quickconnect = require('rtc-quickconnect');
 
-quickconnect('http://rtc.io/switchboard/', { room: 'qc-simple-demo' })
+quickconnect('https://switchboard.rtc.io/', { room: 'qc-simple-demo' })
   .on('call:started', function(id, pc, data) {
     console.log('we have a new connection to: ' + id);
   });
@@ -68,7 +68,7 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
   This is equivalent of the `channel:opened` event, but only triggered for a channel with label `%label%`.  For example:
 
   ```js
-  quickconnect('http://rtc.io/switchboard', { room: 'test' })
+  quickconnect('https://switchboard.rtc.io/', { room: 'test' })
     .createDataChannel('foo')
     .createDataChannel('bar')
     .on('channel:opened:foo', function(id, dc) {
@@ -116,7 +116,7 @@ var opts = {
   iceServers: freeice()
 };
 
-quickconnect('http://rtc.io/switchboard/', opts)
+quickconnect('https://switchboard.rtc.io/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
