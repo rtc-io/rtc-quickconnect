@@ -5,7 +5,7 @@
 <body>
 <script src="../dist/quickconnect.js"></script>
 <script>
-quickconnect('http://rtc.io/switchboard/', { room: 'bundle-test' })
+quickconnect('https://switchboard.rtc.io/', { room: 'bundle-test' })
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know
@@ -18,5 +18,5 @@ quickconnect('http://rtc.io/switchboard/', { room: 'bundle-test' })
     dc.send('hi');
   });
 </script>
-<body>
+</body>
 </html>
