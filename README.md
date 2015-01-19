@@ -27,6 +27,7 @@ quickconnect('https://switchboard.rtc.io/', { room: 'qc-simple-demo' })
   .on('call:started', function(id, pc, data) {
     console.log('we have a new connection to: ' + id);
   });
+
 ```
 
 ## Events
@@ -128,6 +129,7 @@ quickconnect('https://switchboard.rtc.io/', opts)
     console.log('test dc open for peer: ' + id);
     dc.send('hi');
   });
+
 ```
 
 ## Example Usage (using captured media)
@@ -300,7 +302,7 @@ For example, if a new data channel was requested using the following
 call:
 
 ```js
-var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
+var qc = quickconnect('https://switchboard.rtc.io/').createDataChannel('test');
 ```
 
 Then when the data channel is ready for use, a `test:open` event would
@@ -379,7 +381,7 @@ for a `call:started` event that matches the requested `targetId`
 
 ### Apache 2.0
 
-Copyright 2014 National ICT Australia Limited (NICTA)
+Copyright 2015 National ICT Australia Limited (NICTA)
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
