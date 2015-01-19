@@ -3,8 +3,6 @@ var quickconnect = require('..');
 var connections = [];
 var dcs = [];
 var room = require('uuid').v4();
-// var freeice = require('freeice');
-// var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
 // require('cog/logger').enable('*');

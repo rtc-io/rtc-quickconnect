@@ -4,7 +4,6 @@ var uuid = require('uuid');
 var connections = [];
 var dcs = [];
 var roomId = uuid.v4();
-// var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
 // require('cog/logger').enable('rtc-quickconnect');

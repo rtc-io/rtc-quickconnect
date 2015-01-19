@@ -2,7 +2,6 @@ var test = require('tape');
 var quickconnect = require('..');
 var roomId = require('uuid').v4();
 var clients = [];
-// var signallingServer = 'http://rtc.io/switchboard/';
 var signallingServer = location.origin;
 
 test('create test participant', function(t) {
