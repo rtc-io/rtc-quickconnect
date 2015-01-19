@@ -6,7 +6,7 @@ var opts = {
   iceServers: freeice()
 };
 
-quickconnect('http://rtc.io/switchboard/', opts)
+quickconnect('https://switchboard.rtc.io/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('test')
   // when the test channel is open, let us know

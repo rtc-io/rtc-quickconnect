@@ -34,7 +34,7 @@ processor.on('frame', function() {
   })
 });
 
-quickconnect('http://rtc.io/switchboard/', { room: 'demo-snaps' })
+quickconnect('https://switchboard.rtc.io/', { room: 'demo-snaps' })
   // tell quickconnect we want a datachannel called test
   .createDataChannel('snaps')
   // when the test channel is open, let us know

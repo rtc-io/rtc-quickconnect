@@ -9,7 +9,7 @@ var remote = crel('div', { class: 'remote' });
 // require('cog/logger').enable('*');
 
 // use quickconnect to connect to the signalling server
-var qc = quickconnect('http://rtc.io/switchboard/', {
+var qc = quickconnect('https://switchboard.rtc.io/', {
   room: 'reactive-test',
   expectedLocalStreams: 1
 });

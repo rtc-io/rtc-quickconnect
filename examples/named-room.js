@@ -1,6 +1,6 @@
 var quickconnect = require('../');
 
-quickconnect('http://rtc.io/switchboard/', { room: 'dctest-room' })
+quickconnect('https://switchboard.rtc.io/', { room: 'dctest-room' })
   .addChannel('test')
   .on('channel:opened:test', function(id, dc) {
     dc.onmessage = function(evt) {

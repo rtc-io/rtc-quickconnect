@@ -37,7 +37,7 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
   This is equivalent of the `channel:opened` event, but only triggered for a channel with label `%label%`.  For example:
 
   ```js
-  quickconnect('http://rtc.io/switchboard', { room: 'test' })
+  quickconnect('https://switchboard.rtc.io/', { room: 'test' })
     .createDataChannel('foo')
     .createDataChannel('bar')
     .on('channel:opened:foo', function(id, dc) {

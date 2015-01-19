@@ -600,7 +600,7 @@ module.exports = function(signalhost, opts) {
     call:
 
     ```js
-    var qc = quickconnect('http://rtc.io/switchboard').createDataChannel('test');
+    var qc = quickconnect('https://switchboard.rtc.io/').createDataChannel('test');
     ```
 
     Then when the data channel is ready for use, a `test:open` event would
