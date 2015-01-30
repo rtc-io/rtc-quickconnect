@@ -509,7 +509,7 @@ module.exports = function(signalhost, opts) {
   // if the room is not defined, then generate the room name
   if (! room) {
     // if the hash is not assigned, then create a random hash value
-    if (! hash) {
+    if (typeof location != 'undefined' && (! hash)) {
       hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
     }
 
