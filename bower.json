@@ -1,0 +1,19 @@
+{
+  "name": "rtc-quickconnect",
+  "version": "4.1.2",
+  "description": "Create a WebRTC connection in record time",
+  "main": "dist/quickconnect.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rtc-io/rtc-quickconnect.git"
+  },
+  "keywords": [
+    "rtc.io",
+    "webrtc"
+  ],
+  "author": "Damon Oehlman <damon.oehlman@nicta.com.au>",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
+  }
+}
