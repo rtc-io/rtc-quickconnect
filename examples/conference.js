@@ -1,8 +1,11 @@
 var quickconnect = require('../');
 var crel = require('crel');
-var getUserMedia = require('getusermedia');
-var attachmediastream = require('attachmediastream');
+var capture = require('rtc-capture');
+var attach = require('rtc-attach');
 var qsa = require('fdom/qsa');
+var plugins = [
+  require('rtc-plugin-temasys')
+];
 
 // create containers for our local and remote video
 var local = crel('div', { class: 'local' });
@@ -10,24 +13,27 @@ var remote = crel('div', { class: 'remote' });
 var peerMedia = {};
 
 // once media is captured, connect
-getUserMedia({ audio: true, video: true }, function(err, localStream) {
+capture({ audio: true, video: true }, { plugins: plugins }, function(err, localStream) {
   if (err) {
     return console.error('could not capture media: ', err);
   }
 
   // render the local media
-  local.appendChild(attachmediastream(localStream));
+  attach(localStream, { plugins: plugins }, function(err, el) {
+    local.appendChild(el);
+  });
 
   // initiate connection
-  quickconnect('https://switchboard.rtc.io/', { room: 'conftest' })
+  quickconnect('https://switchboard.rtc.io/', { room: 'conftest', plugins: plugins })
     // broadcast our captured media to other participants in the room
     .addStream(localStream)
     // when a peer is connected (and active) pass it to us for use
     .on('call:started', function(id, pc, data) {
-      var videos = pc.getRemoteStreams().map(attachmediastream);
-      videos.forEach(function(video) {
-        video.dataset.peer = id;
-        remote.appendChild(video);
+      attach(pc.getRemoteStreams()[0], { plugins: plugins }, function(err, el) {
+        if (err) return;
+
+        el.dataset.peer = id;
+        remote.appendChild(el);
       });
     })
     // when a peer leaves, remove teh media
