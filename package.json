@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "cog": "^1",
-    "mbus": "^1.3.1",
+    "mbus": "^2.0.0",
     "rtc-core": "^4.0.0",
     "rtc-signaller": "^5.1.0",
     "rtc-switchboard-messenger": "^1.0.0",
