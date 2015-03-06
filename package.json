@@ -49,7 +49,6 @@
     "rtc-quickconnect-test": "^1.0.1",
     "rtc-switchboard": "^2.0.0",
     "rtc-videoproc": "^0.11.0",
-    "tape": "^3.0.0",
     "testling": "^1.6.1",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
