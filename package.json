@@ -4,7 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
-    "test": "testling -x ./.travis/start-$BROWSER.sh",
+    "test": "browserify test/all.js | broth ./.travis/start-$BROWSER.sh | tap-spec",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
@@ -33,6 +33,8 @@
   "devDependencies": {
     "async": "^0.9",
     "attachmediastream": "^1.0.1",
+    "broth": "^1.1.0",
+    "browserify": "^9.0.3",
     "crel": "^2.1.5",
     "fdom": "^1.2.0",
     "freeice": "^2.1.1",
@@ -46,15 +48,11 @@
     "rtc-filter-grayscale": "~0.1.0",
     "rtc-media": "^1",
     "rtc-plugin-temasys": "^1.1.1",
-    "rtc-quickconnect-test": "^1.0.1",
+    "rtc-quickconnect-test": "^1.1.0",
     "rtc-switchboard": "^2.0.0",
     "rtc-videoproc": "^0.11.0",
-    "testling": "^1.6.1",
+    "tap-spec": "^2.2.2",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
-  },
-  "testling": {
-    "files": "test/all.js",
-    "server": "test/server.js"
   }
 }
