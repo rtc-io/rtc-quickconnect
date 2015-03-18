@@ -1,4 +1,5 @@
 /* jshint node: true */
+/* global location */
 'use strict';
 
 var rtc = require('rtc-tools');
@@ -6,10 +7,8 @@ var mbus = require('mbus');
 var cleanup = require('rtc-tools/cleanup');
 var detectPlugin = require('rtc-core/plugin');
 var debug = rtc.logger('rtc-quickconnect');
-var defaults = require('cog/defaults');
 var extend = require('cog/extend');
 var getable = require('cog/getable');
-var reTrailingSlash = /\/$/;
 
 /**
   # rtc-quickconnect
@@ -133,7 +132,7 @@ module.exports = function(signalhost, opts) {
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
-  var plugin = detectPlugin(signaller.plugins);
+  var plugin = detectPlugin(plugins);
   var pluginReady;
 
   // check how many local streams have been expected (default: 0)
@@ -284,7 +283,7 @@ module.exports = function(signalhost, opts) {
     callCreate(data.id, pc);
 
     // add the local streams
-    localStreams.forEach(function(stream, idx) {
+    localStreams.forEach(function(stream) {
       pc.addStream(stream);
     });
 
@@ -323,7 +322,7 @@ module.exports = function(signalhost, opts) {
     signaller('peer:couple', id, pc, data, monitor);
 
     // once active, trigger the peer connect event
-    monitor.once('connected', callStart.bind(null, id, pc, data))
+    monitor.once('connected', callStart.bind(null, id, pc, data));
     monitor.once('closed', callEnd.bind(null, id));
 
     // if we are the master connnection, create the offer
@@ -339,7 +338,7 @@ module.exports = function(signalhost, opts) {
       debug('peer ' + id + ' added stream');
       updateRemoteStreams(id);
       receiveRemoteStream(id)(evt.stream);
-    }
+    };
   }
 
   function createStreamRemoveHandler(id) {
@@ -490,8 +489,6 @@ module.exports = function(signalhost, opts) {
   }
 
   function receiveRemoteStream(id) {
-    var call = calls.get(id);
-
     return function(stream) {
       signaller('stream:added', id, stream, getPeerData(id));
     };
