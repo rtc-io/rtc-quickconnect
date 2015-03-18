@@ -344,15 +344,6 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function handlePing(sender) {
-    var call = calls.get(sender && sender.id);
-
-    // set the last ping for the data
-    if (call) {
-      call.lastping = Date.now();
-    }
-  }
-
   // if the room is not defined, then generate the room name
   if (! room) {
     // if the hash is not assigned, then create a random hash value
@@ -687,7 +678,7 @@ module.exports = function(signalhost, opts) {
   signaller.on('local:announce', handleLocalAnnounce);
 
   // handle ping messages
-  signaller.on('message:ping', handlePing);
+  signaller.on('message:ping', calls.ping);
 
   // use genice to find our iceServers
   require('rtc-core/genice')(opts, function(err, servers) {
