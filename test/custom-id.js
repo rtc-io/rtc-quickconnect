@@ -42,7 +42,7 @@ test('check call active', function(t) {
     conn.waitForCall(connections[index ^ 1].id, function(err, pc) {
       t.ifError(err, 'call available');
       t.ok(pc, 'have peer connection');
-      t.equal(pc.iceConnectionState, 'connected', 'call connected');
+      t.ok(['connected', 'completed'].indexOf(pc.iceConnectionState) >= 0, 'call connected');
     });
   });
 });
