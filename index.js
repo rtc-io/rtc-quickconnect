@@ -104,7 +104,13 @@ var extend = require('cog/extend');
 **/
 module.exports = function(signalhost, opts) {
   var hash = typeof location != 'undefined' && location.hash.slice(1);
-  var signaller = require('rtc-pluggable-signaller')(extend({ signaller: signalhost }, opts));
+  var signaller = require('rtc-pluggable-signaller')(extend({
+    signaller: signalhost,
+
+    // use the primus endpoint as a fallback in case we are talking to an
+    // older switchboard instance
+    endpoints: ['/', '/primus']
+  }, opts));
   var getPeerData = require('./lib/getpeerdata')(signaller.peers);
 
   // init configurable vars
