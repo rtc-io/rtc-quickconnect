@@ -27,7 +27,7 @@
     "rtc-capture": "^1.0.2",
     "rtc-core": "^4.0.0",
     "rtc-pluggable-signaller": "^1.1.0",
-    "rtc-signaller": "^5.1.0",
+    "rtc-signaller": "^6.2.0",
     "rtc-tools": "^4.2.0"
   },
   "devDependencies": {
