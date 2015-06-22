@@ -58,6 +58,10 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
 
   Triggered when a peer connection has been closed.  This may be due to the peer connection itself indicating that it has been closed, or we may have lost connection with the remote signaller and the connection has timed out.
 
+- `call:expired => function(id)`
+
+  Triggered when a peer connection is timed out due to the expiry of the heartbeat to the remote peer. Note that this event is thrown before (and in addition to) the more generic `call:ended` event.
+
 ### Data Channel Level Events
 
 - `channel:opened => function(id, datachannel, data)`
