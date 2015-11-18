@@ -4,7 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
-    "test": "browserify test/all.js | broth start-$BROWSER | tap-spec",
+    "test": "browserify test/all.js | broth start | tap-spec",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
@@ -27,7 +27,7 @@
     "rtc-capture": "^1.0.2",
     "rtc-core": "^4.0.0",
     "rtc-pluggable-signaller": "^2.0.0",
-    "rtc-tools": "^4.2.0"
+    "rtc-tools": "^5.0.0"
   },
   "devDependencies": {
     "async": "^0.9",
@@ -51,7 +51,7 @@
     "rtc-switchboard": "^3.0.0",
     "rtc-videoproc": "^0.11.0",
     "tap-spec": "^3.0.0",
-    "travis-multirunner": "^2.0.5",
+    "travis-multirunner": "^3.0.0",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
   }
