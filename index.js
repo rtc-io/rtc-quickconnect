@@ -185,6 +185,7 @@ module.exports = function(signalhost, opts) {
     var data = getPeerData(id);
     var pc;
     var monitor;
+    var call;
 
     // if the room is not a match, abort
     if (data.room !== room) {
@@ -204,7 +205,7 @@ module.exports = function(signalhost, opts) {
     signaller('peer:connect', data.id, pc, data);
 
     // add this connection to the calls list
-    calls.create(data.id, pc);
+    call = calls.create(data.id, pc);
 
     // add the local streams
     localStreams.forEach(function(stream) {
@@ -243,6 +244,10 @@ module.exports = function(signalhost, opts) {
       logger: mbus('pc.' + id, signaller)
     }));
 
+    // Apply the monitor to the call
+    call.monitor = monitor;
+
+    // Fire the couple event
     signaller('peer:couple', id, pc, data, monitor);
 
     // once active, trigger the peer connect event
@@ -345,8 +350,7 @@ module.exports = function(signalhost, opts) {
     // then pass this onto the announce handler
     if (id && (! activeCall)) {
       debug('received peer update from peer ' + id + ', no active calls');
-      signaller.to(id).send('/reconnect');
-      return connect(id);
+      return signaller.reconnectTo(id);
     }
   }
 
@@ -672,6 +676,16 @@ module.exports = function(signalhost, opts) {
         callback(null, calls.get(id).pc);
       }
     });
+  };
+
+  /**
+    Attempts to reconnect to a certain target peer. It will close any existing
+    call to that peer, and restart the connection process
+   **/
+  signaller.reconnectTo = function(id) {
+    if (!id) return;
+    signaller.to(id).send('/reconnect');
+    return connect(id);
   };
 
   // if we have an expected number of local streams, then use a filter to
