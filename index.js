@@ -354,6 +354,13 @@ module.exports = function(signalhost, opts) {
     }
   }
 
+  function handlePeerLeave(data) {
+    var id = data && data.id;
+    if (id) {
+      calls.end(id);
+    }
+  }
+
   // if the room is not defined, then generate the room name
   if (! room) {
     // if the hash is not assigned, then create a random hash value
@@ -699,6 +706,10 @@ module.exports = function(signalhost, opts) {
 
   // handle ping messages
   signaller.on('message:ping', calls.ping);
+
+  // Handle when a remote peer leaves that the appropriate closing occurs this
+  // side as well
+  signaller.on('message:leave', handlePeerLeave);
 
   // use genice to find our iceServers
   require('rtc-core/genice')(opts, function(err, servers) {
