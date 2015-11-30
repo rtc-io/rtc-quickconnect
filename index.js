@@ -122,6 +122,11 @@ module.exports = function(signalhost, opts) {
   var profile = {};
   var announced = false;
 
+  // Schemes allow customisation about how connections are made
+  // In particular, providing schemes allows providing different sets of ICE servers
+  // between peers
+  var schemes = require('./lib/schemes')(signaller, opts);
+
   // collect the local streams
   var localStreams = [];
 
@@ -130,6 +135,7 @@ module.exports = function(signalhost, opts) {
 
   // create the known data channels registry
   var channels = {};
+  var initializing = {};
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
@@ -169,14 +175,15 @@ module.exports = function(signalhost, opts) {
 
       // announce and emit the local announce event
       signaller.announce(data);
-      console.log('announce');
       announced = true;
     }, 0);
   }
 
-  function connect(id) {
-    console.log('connect ' + id);
-    // console.error(new Error('connect'));
+  function connect(id, schemeId) {
+    if (initializing[id]) return;
+    initializing[id] = true;
+
+    var scheme = schemes.get(schemeId, true);
     var data = getPeerData(id);
     var pc;
     var monitor;
@@ -187,12 +194,11 @@ module.exports = function(signalhost, opts) {
       return;
     }
 
-    // Regenerate ICE servers (or use existing cached ICE)
-    generateIceServers(extend({targetPeer: id}, opts), function(err, iceServers) {
-      console.log('ice servers');
+    // end any call to this id so we know we are starting fresh
+    calls.end(id);
 
-      // end any call to this id so we know we are starting fresh
-      calls.end(id);
+    // Regenerate ICE servers (or use existing cached ICE)
+    generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).config), function(err, iceServers) {
 
       if (err || !iceServers || !Array.isArray(iceServers) || iceServers.length === 0) {
         console.error('Unable to get ICE servers', err);
@@ -200,7 +206,6 @@ module.exports = function(signalhost, opts) {
         return;
       }
 
-      console.log('using ice servers', iceServers);
       // create a peer connection
       // iceServers that have been created using genice taking precendence
       pc = rtc.createConnection(
@@ -267,7 +272,7 @@ module.exports = function(signalhost, opts) {
         monitor.createOffer();
       }
 
-      console.log('connect done ' + id);
+      delete initializing[id];
     });
   }
 
@@ -385,14 +390,20 @@ module.exports = function(signalhost, opts) {
   }
 
   signaller.on('peer:announce', function(data) {
-    console.log('peer announce', data);
-    connect(data.id);
+    connect(data.id, data.scheme);
   });
 
   signaller.on('peer:update', handlePeerUpdate);
 
-  signaller.on('message:reconnect', function(sender) {
-    connect(sender.id);
+  signaller.on('message:reconnect', function(data, sender, message) {
+    // Sender arguments are always last
+    if (!message) {
+      message = sender;
+      sender = data;
+      data = undefined;
+    }
+
+    connect(sender.id, (data || {}).scheme);
     // If this is the master, echo the reconnection back to the peer instructing that
     // the reconnection has been accepted and to connect
     var isMaster = signaller.isMaster(sender.id);
@@ -400,8 +411,6 @@ module.exports = function(signalhost, opts) {
       signaller.to(sender.id).send('/reconnect');
     }
   });
-
-
 
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
@@ -434,6 +443,14 @@ module.exports = function(signalhost, opts) {
     checkReadyToAnnounce();
     return signaller;
   };
+
+  /**
+    #### endCall
+
+    The `endCall` function terminates the active call with the given ID.
+    If a call with the call ID does not exist it will do nothing.
+  **/
+  signaller.endCall = calls.end;
 
   /**
     #### endCalls()
@@ -541,6 +558,15 @@ module.exports = function(signalhost, opts) {
 
     // chain
     return signaller;
+  };
+
+  /**
+    #### registerScheme
+
+    Registers a connection scheme for use, and check it for validity
+   **/
+  signaller.registerScheme = function registerScheme (scheme) {
+    return schemes.add(scheme);
   };
 
   /**
@@ -667,7 +693,6 @@ module.exports = function(signalhost, opts) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
         signaller.announce(profile);
-        console.log('announce profile');
       }, (opts || {}).updateDelay || 1000);
     }
 
@@ -706,14 +731,14 @@ module.exports = function(signalhost, opts) {
     Attempts to reconnect to a certain target peer. It will close any existing
     call to that peer, and restart the connection process
    **/
-  signaller.reconnectTo = function(id) {
+  signaller.reconnectTo = function(id, scheme) {
     if (!id) return;
-    signaller.to(id).send('/reconnect');
+    signaller.to(id).send('/reconnect', {scheme: scheme});
     // If this is the master, connect, otherwise the master will send a /reconnect
     // message back instructing the connection to start
     var isMaster = signaller.isMaster(id);
     if (isMaster) {
-      return connect(id);
+      return connect(id, scheme);
     }
   };
 
