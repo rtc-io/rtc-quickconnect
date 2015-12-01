@@ -179,11 +179,12 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
-  function connect(id, schemeId) {
+  function connect(id, connectOpts) {
     if (initializing[id]) return;
     initializing[id] = true;
+    connectOpts = connectOpts || {};
 
-    var scheme = schemes.get(schemeId, true);
+    var scheme = schemes.get(connectOpts.scheme, true);
     var data = getPeerData(id);
     var pc;
     var monitor;
@@ -196,13 +197,12 @@ module.exports = function(signalhost, opts) {
 
     // end any call to this id so we know we are starting fresh
     calls.end(id);
-
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).config), function(err, iceServers) {
       if (err) {
-        signaller('icegeneration:error', id, schemeId, err);
+        signaller('icegeneration:error', id, scheme && scheme.id, err);
       } else {
-        signaller('peer:iceservers', id, schemeId, iceServers || []);
+        signaller('peer:iceservers', id, scheme && scheme.id, iceServers || []);
       }
 
       // create a peer connection
@@ -389,7 +389,7 @@ module.exports = function(signalhost, opts) {
   }
 
   signaller.on('peer:announce', function(data) {
-    connect(data.id, data.scheme);
+    connect(data.id, { scheme: data.scheme });
   });
 
   signaller.on('peer:update', handlePeerUpdate);
@@ -402,12 +402,12 @@ module.exports = function(signalhost, opts) {
       data = undefined;
     }
 
-    connect(sender.id, (data || {}).scheme);
+    connect(sender.id, data || {});
     // If this is the master, echo the reconnection back to the peer instructing that
     // the reconnection has been accepted and to connect
     var isMaster = signaller.isMaster(sender.id);
     if (isMaster) {
-      signaller.to(sender.id).send('/reconnect');
+      signaller.to(sender.id).send('/reconnect', data || {});
     }
   });
 
@@ -730,14 +730,14 @@ module.exports = function(signalhost, opts) {
     Attempts to reconnect to a certain target peer. It will close any existing
     call to that peer, and restart the connection process
    **/
-  signaller.reconnectTo = function(id, scheme) {
+  signaller.reconnectTo = function(id, reconnectOpts) {
     if (!id) return;
-    signaller.to(id).send('/reconnect', {scheme: scheme});
+    signaller.to(id).send('/reconnect', reconnectOpts);
     // If this is the master, connect, otherwise the master will send a /reconnect
     // message back instructing the connection to start
     var isMaster = signaller.isMaster(id);
     if (isMaster) {
-      return connect(id, scheme);
+      return connect(id, reconnectOpts);
     }
   };
 
@@ -760,10 +760,12 @@ module.exports = function(signalhost, opts) {
   // if we plugin is active, then initialize it
   if (plugin) {
     initPlugin();
+  } else {
+    // Test if we are ready to announce
+    process.nextTick(function() {
+      checkReadyToAnnounce();
+    });
   }
-
-  // Test if we are ready to announce
-  checkReadyToAnnounce();
 
   // pass the signaller on
   return signaller;
