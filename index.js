@@ -199,11 +199,10 @@ module.exports = function(signalhost, opts) {
 
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).config), function(err, iceServers) {
-
-      if (err || !iceServers || !Array.isArray(iceServers) || iceServers.length === 0) {
-        console.error('Unable to get ICE servers', err);
-        signaller('peer:noice', data.id, err);
-        return;
+      if (err) {
+        signaller('icegeneration:error', id, schemeId, err);
+      } else {
+        signaller('peer:iceservers', id, schemeId, iceServers || []);
       }
 
       // create a peer connection
