@@ -198,7 +198,7 @@ module.exports = function(signalhost, opts) {
     // end any call to this id so we know we are starting fresh
     calls.end(id);
     // Regenerate ICE servers (or use existing cached ICE)
-    generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).config), function(err, iceServers) {
+    generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
       if (err) {
         signaller('icegeneration:error', id, scheme && scheme.id, err);
       } else {
@@ -564,9 +564,7 @@ module.exports = function(signalhost, opts) {
 
     Registers a connection scheme for use, and check it for validity
    **/
-  signaller.registerScheme = function registerScheme (scheme) {
-    return schemes.add(scheme);
-  };
+  signaller.registerScheme = schemes.add;
 
   /**
     #### removeStream
