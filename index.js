@@ -112,6 +112,7 @@ module.exports = function(signalhost, opts) {
     endpoints: ['/', '/primus']
   }, opts));
   var getPeerData = require('./lib/getpeerdata')(signaller.peers);
+  var generateIceServers = require('rtc-core/genice');
 
   // init configurable vars
   var ns = (opts || {}).ns || '';
@@ -121,9 +122,10 @@ module.exports = function(signalhost, opts) {
   var profile = {};
   var announced = false;
 
-  // initialise iceServers to undefined
-  // we will not announce until these have been properly initialised
-  var iceServers;
+  // Schemes allow customisation about how connections are made
+  // In particular, providing schemes allows providing different sets of ICE servers
+  // between peers
+  var schemes = require('./lib/schemes')(signaller, opts);
 
   // collect the local streams
   var localStreams = [];
@@ -133,6 +135,7 @@ module.exports = function(signalhost, opts) {
 
   // create the known data channels registry
   var channels = {};
+  var initializing = {};
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
@@ -160,11 +163,6 @@ module.exports = function(signalhost, opts) {
       return;
     }
 
-    // if we have no iceServers we aren't ready
-    if (! iceServers) {
-      return;
-    }
-
     // if we are waiting for a set number of streams, then wait until we have
     // the required number
     if (expectedLocalStreams && localStreams.length < expectedLocalStreams) {
@@ -181,7 +179,12 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
-  function connect(id) {
+  function connect(id, connectOpts) {
+    if (initializing[id]) return;
+    initializing[id] = true;
+    connectOpts = connectOpts || {};
+
+    var scheme = schemes.get(connectOpts.scheme, true);
     var data = getPeerData(id);
     var pc;
     var monitor;
@@ -194,72 +197,82 @@ module.exports = function(signalhost, opts) {
 
     // end any call to this id so we know we are starting fresh
     calls.end(id);
+    // Regenerate ICE servers (or use existing cached ICE)
+    generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
+      if (err) {
+        signaller('icegeneration:error', id, scheme && scheme.id, err);
+      } else {
+        signaller('peer:iceservers', id, scheme && scheme.id, iceServers || []);
+      }
 
-    // create a peer connection
-    // iceServers that have been created using genice taking precendence
-    pc = rtc.createConnection(
-      extend({}, opts, { iceServers: iceServers }),
-      (opts || {}).constraints
-    );
+      // create a peer connection
+      // iceServers that have been created using genice taking precendence
+      pc = rtc.createConnection(
+        extend({}, opts, { iceServers: iceServers }),
+        (opts || {}).constraints
+      );
 
-    signaller('peer:connect', data.id, pc, data);
+      signaller('peer:connect', data.id, pc, data);
 
-    // add this connection to the calls list
-    call = calls.create(data.id, pc);
+      // add this connection to the calls list
+      call = calls.create(data.id, pc);
 
-    // add the local streams
-    localStreams.forEach(function(stream) {
-      pc.addStream(stream);
-    });
-
-    // add the data channels
-    // do this differently based on whether the connection is a
-    // master or a slave connection
-    if (signaller.isMaster(data.id)) {
-      debug('is master, creating data channels: ', Object.keys(channels));
-
-      // create the channels
-      Object.keys(channels).forEach(function(label) {
-       gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
+      // add the local streams
+      localStreams.forEach(function(stream) {
+        pc.addStream(stream);
       });
-    }
-    else {
-      pc.ondatachannel = function(evt) {
-        var channel = evt && evt.channel;
 
-        // if we have no channel, abort
-        if (! channel) {
-          return;
-        }
+      // add the data channels
+      // do this differently based on whether the connection is a
+      // master or a slave connection
+      if (signaller.isMaster(data.id)) {
+        debug('is master, creating data channels: ', Object.keys(channels));
 
-        if (channels[channel.label] !== undefined) {
-          gotPeerChannel(channel, pc, getPeerData(id));
-        }
-      };
-    }
+        // create the channels
+        Object.keys(channels).forEach(function(label) {
+         gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
+        });
+      }
+      else {
+        pc.ondatachannel = function(evt) {
+          var channel = evt && evt.channel;
 
-    // couple the connections
-    debug('coupling ' + signaller.id + ' to ' + data.id);
-    monitor = rtc.couple(pc, id, signaller, extend({}, opts, {
-      logger: mbus('pc.' + id, signaller)
-    }));
+          // if we have no channel, abort
+          if (! channel) {
+            return;
+          }
 
-    // Apply the monitor to the call
-    call.monitor = monitor;
+          if (channels[channel.label] !== undefined) {
+            gotPeerChannel(channel, pc, getPeerData(id));
+          }
+        };
+      }
 
-    // Fire the couple event
-    signaller('peer:couple', id, pc, data, monitor);
+      // couple the connections
+      debug('coupling ' + signaller.id + ' to ' + data.id);
+      monitor = rtc.couple(pc, id, signaller, extend({}, opts, {
+        logger: mbus('pc.' + id, signaller)
+      }));
 
-    // once active, trigger the peer connect event
-    monitor.once('connected', calls.start.bind(null, id, pc, data));
-    monitor.once('closed', calls.end.bind(null, id));
+      // Apply the monitor to the call
+      call.monitor = monitor;
 
-    // if we are the master connnection, create the offer
-    // NOTE: this only really for the sake of politeness, as rtc couple
-    // implementation handles the slave attempting to create an offer
-    if (signaller.isMaster(id)) {
-      monitor.createOffer();
-    }
+      // Fire the couple event
+      signaller('peer:couple', id, pc, data, monitor);
+
+      // once active, trigger the peer connect event
+      monitor.once('connected', calls.start.bind(null, id, pc, data));
+      monitor.once('closed', calls.end.bind(null, id));
+
+      // if we are the master connnection, create the offer
+      // NOTE: this only really for the sake of politeness, as rtc couple
+      // implementation handles the slave attempting to create an offer
+      if (signaller.isMaster(id)) {
+        monitor.createOffer();
+      }
+
+      delete initializing[id];
+    });
   }
 
   function getActiveCall(peerId) {
@@ -376,16 +389,27 @@ module.exports = function(signalhost, opts) {
   }
 
   signaller.on('peer:announce', function(data) {
-    connect(data.id);
+    connect(data.id, { scheme: data.scheme });
   });
 
   signaller.on('peer:update', handlePeerUpdate);
 
-  signaller.on('message:reconnect', function(sender) {
-    connect(sender.id);
+  signaller.on('message:reconnect', function(data, sender, message) {
+    // Sender arguments are always last
+    if (!message) {
+      message = sender;
+      sender = data;
+      data = undefined;
+    }
+
+    connect(sender.id, data || {});
+    // If this is the master, echo the reconnection back to the peer instructing that
+    // the reconnection has been accepted and to connect
+    var isMaster = signaller.isMaster(sender.id);
+    if (isMaster) {
+      signaller.to(sender.id).send('/reconnect', data || {});
+    }
   });
-
-
 
   /**
     ### Quickconnect Broadcast and Data Channel Helper Functions
@@ -418,6 +442,14 @@ module.exports = function(signalhost, opts) {
     checkReadyToAnnounce();
     return signaller;
   };
+
+  /**
+    #### endCall
+
+    The `endCall` function terminates the active call with the given ID.
+    If a call with the call ID does not exist it will do nothing.
+  **/
+  signaller.endCall = calls.end;
 
   /**
     #### endCalls()
@@ -526,6 +558,13 @@ module.exports = function(signalhost, opts) {
     // chain
     return signaller;
   };
+
+  /**
+    #### registerScheme
+
+    Registers a connection scheme for use, and check it for validity
+   **/
+  signaller.registerScheme = schemes.add;
 
   /**
     #### removeStream
@@ -689,10 +728,15 @@ module.exports = function(signalhost, opts) {
     Attempts to reconnect to a certain target peer. It will close any existing
     call to that peer, and restart the connection process
    **/
-  signaller.reconnectTo = function(id) {
+  signaller.reconnectTo = function(id, reconnectOpts) {
     if (!id) return;
-    signaller.to(id).send('/reconnect');
-    return connect(id);
+    signaller.to(id).send('/reconnect', reconnectOpts);
+    // If this is the master, connect, otherwise the master will send a /reconnect
+    // message back instructing the connection to start
+    var isMaster = signaller.isMaster(id);
+    if (isMaster) {
+      return connect(id, reconnectOpts);
+    }
   };
 
   // if we have an expected number of local streams, then use a filter to
@@ -711,19 +755,14 @@ module.exports = function(signalhost, opts) {
   // side as well
   signaller.on('message:leave', handlePeerLeave);
 
-  // use genice to find our iceServers
-  require('rtc-core/genice')(opts, function(err, servers) {
-    if (err) {
-      return console.error('could not find iceServers: ', err);
-    }
-
-    iceServers = servers;
-    checkReadyToAnnounce();
-  });
-
   // if we plugin is active, then initialize it
   if (plugin) {
     initPlugin();
+  } else {
+    // Test if we are ready to announce
+    process.nextTick(function() {
+      checkReadyToAnnounce();
+    });
   }
 
   // pass the signaller on
