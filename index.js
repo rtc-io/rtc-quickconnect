@@ -197,6 +197,9 @@ module.exports = function(signalhost, opts) {
 
     // end any call to this id so we know we are starting fresh
     calls.end(id);
+
+    signaller('peer:prepare', data.id, data, scheme);
+
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
       if (err) {
