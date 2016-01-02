@@ -32,7 +32,7 @@
   "devDependencies": {
     "async": "^0.9",
     "attachmediastream": "^1.0.1",
-    "broth": "^2.0.0",
+    "broth": "^2.2.0",
     "browserify": "^9.0.3",
     "crel": "^2.1.5",
     "fdom": "^1.2.0",
