@@ -266,6 +266,7 @@ module.exports = function(signalhost, opts) {
       // once active, trigger the peer connect event
       monitor.once('connected', calls.start.bind(null, id, pc, data));
       monitor.once('closed', calls.end.bind(null, id));
+      monitor.once('failed', calls.fail.bind(null, id));
 
       // if we are the master connnection, create the offer
       // NOTE: this only really for the sake of politeness, as rtc couple
