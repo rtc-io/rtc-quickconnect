@@ -329,9 +329,12 @@ module.exports = function(signalhost, opts) {
 
     // monitor the channel open (don't trust the channel open event just yet)
     channelMonitor = setInterval(function() {
-      debug('checking channel state, current state = ' + channel.readyState);
+      debug('checking channel state, current state = ' + channel.readyState + ', connection state ' + pc.iceConnectionState);
       if (channel.readyState === 'open') {
         channelReady();
+      } else if (['failed', 'closed'].indexOf(pc.iceConnectionState) !== -1) {
+        debug('connection has terminated, cancelling channel monitor');
+        clearInterval(channelMonitor);
       }
     }, 500);
   }
