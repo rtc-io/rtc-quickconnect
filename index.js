@@ -111,6 +111,7 @@ module.exports = function(signalhost, opts) {
     // older switchboard instance
     endpoints: ['/', '/primus']
   }, opts));
+
   var getPeerData = require('./lib/getpeerdata')(signaller.peers);
   var generateIceServers = require('rtc-core/genice');
 
@@ -388,9 +389,9 @@ module.exports = function(signalhost, opts) {
     }
   }
 
-  function handlePeerClose() {
+  function handlePeerClose(id) {
     if (!announced) return;
-    debug('call has ended, reannouncing to synchronize connections');
+    debug('call has from ' + signaller.id + ' to ' + id + ' has ended, reannouncing');
     return signaller.profile();
   }
 
@@ -715,7 +716,7 @@ module.exports = function(signalhost, opts) {
     if (announced) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
-        debug('reannouncing');
+        debug('[' + signaller.id + '] reannouncing');
         signaller.announce(profile);
       }, (opts || {}).updateDelay || 1000);
     }
