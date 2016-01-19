@@ -180,8 +180,11 @@ module.exports = function(signalhost, opts) {
   }
 
   function connect(id, connectOpts) {
-    if (initializing[id]) return;
-    initializing[id] = true;
+    debug('connecting to ' + id);
+    if (initializing[id]) {
+      return debug('could not connect to ' + id + ', already initializing (' + Date.now() - initializing[id] + 'ms ago)');
+    }
+    initializing[id] = Date.now();
     connectOpts = connectOpts || {};
 
     var scheme = schemes.get(connectOpts.scheme, true);
@@ -267,6 +270,10 @@ module.exports = function(signalhost, opts) {
       monitor.once('connected', calls.start.bind(null, id, pc, data));
       monitor.once('closed', calls.end.bind(null, id));
       monitor.once('failed', calls.fail.bind(null, id));
+
+      // The following states are intermediate states based on the disconnection timer
+      monitor.once('failing', calls.failing.bind(null, id));
+      monitor.once('recovered', calls.recovered.bind(null, id));
 
       // if we are the master connnection, create the offer
       // NOTE: this only really for the sake of politeness, as rtc couple
@@ -381,6 +388,12 @@ module.exports = function(signalhost, opts) {
     }
   }
 
+  function handlePeerClose() {
+    if (!announced) return;
+    debug('call has ended, reannouncing to synchronize connections');
+    return signaller.profile();
+  }
+
   // if the room is not defined, then generate the room name
   if (! room) {
     // if the hash is not assigned, then create a random hash value
@@ -402,6 +415,8 @@ module.exports = function(signalhost, opts) {
   signaller.on('peer:update', handlePeerUpdate);
 
   signaller.on('message:reconnect', function(data, sender, message) {
+    debug('received reconnect message');
+
     // Sender arguments are always last
     if (!message) {
       message = sender;
@@ -479,6 +494,10 @@ module.exports = function(signalhost, opts) {
     of all connections.
   **/
   signaller.close = function() {
+    // We are no longer announced
+    announced = false;
+
+    // Cleanup
     signaller.endCalls();
     signaller.leave();
   };
@@ -689,13 +708,14 @@ module.exports = function(signalhost, opts) {
 
   **/
   signaller.profile = function(data) {
-    extend(profile, data);
+    extend(profile, data || {});
 
     // if we have already announced, then reannounce our profile to provide
     // others a `peer:update` event
     if (announced) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
+        debug('reannouncing');
         signaller.announce(profile);
       }, (opts || {}).updateDelay || 1000);
     }
@@ -761,6 +781,11 @@ module.exports = function(signalhost, opts) {
   // Handle when a remote peer leaves that the appropriate closing occurs this
   // side as well
   signaller.on('message:leave', handlePeerLeave);
+
+  // When a call:ended, we reannounce ourselves. This offers a degree of failure handling
+  // as if a call has dropped unexpectedly (ie. failure/unable to connect) the other peers
+  // connected to the signaller will attempt to reconnect
+  signaller.on('call:ended', handlePeerClose);
 
   // if we plugin is active, then initialize it
   if (plugin) {
