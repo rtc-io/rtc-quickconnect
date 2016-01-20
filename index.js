@@ -136,7 +136,7 @@ module.exports = function(signalhost, opts) {
 
   // create the known data channels registry
   var channels = {};
-  var initializing = {};
+  var pending = {};
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
@@ -182,10 +182,10 @@ module.exports = function(signalhost, opts) {
 
   function connect(id, connectOpts) {
     debug('connecting to ' + id);
-    if (initializing[id]) {
-      return debug('could not connect to ' + id + ', already initializing (' + Date.now() - initializing[id] + 'ms ago)');
+    if (!id) return debug('invalid target peer ID');
+    if (pending[id]) {
+      return debug('a connection is already pending for ' + id + ', as of ' + (Date.now() - pending[id]) + 'ms ago');
     }
-    initializing[id] = Date.now();
     connectOpts = connectOpts || {};
 
     var scheme = schemes.get(connectOpts.scheme, true);
@@ -196,13 +196,23 @@ module.exports = function(signalhost, opts) {
 
     // if the room is not a match, abort
     if (data.room !== room) {
-      return;
+      return debug('mismatching room, expected: ' + room + ', got: ' + (data && data.room));
     }
+    if (data.id !== id) {
+      return debug('mismatching ids, expected: ' + id + ', got: ' + data.id);
+    }
+    pending[id] = Date.now();
 
     // end any call to this id so we know we are starting fresh
     calls.end(id);
 
-    signaller('peer:prepare', data.id, data, scheme);
+    signaller('peer:prepare', id, data, scheme);
+
+    function clearPending(msg) {
+      if (!pending[id]) return;
+      debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
+      delete pending[id];
+    }
 
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
@@ -219,10 +229,10 @@ module.exports = function(signalhost, opts) {
         (opts || {}).constraints
       );
 
-      signaller('peer:connect', data.id, pc, data);
+      signaller('peer:connect', id, pc, data);
 
       // add this connection to the calls list
-      call = calls.create(data.id, pc);
+      call = calls.create(id, pc, data);
 
       // add the local streams
       localStreams.forEach(function(stream) {
@@ -232,7 +242,7 @@ module.exports = function(signalhost, opts) {
       // add the data channels
       // do this differently based on whether the connection is a
       // master or a slave connection
-      if (signaller.isMaster(data.id)) {
+      if (signaller.isMaster(id)) {
         debug('is master, creating data channels: ', Object.keys(channels));
 
         // create the channels
@@ -256,7 +266,7 @@ module.exports = function(signalhost, opts) {
       }
 
       // couple the connections
-      debug('coupling ' + signaller.id + ' to ' + data.id);
+      debug('coupling ' + signaller.id + ' to ' + id);
       monitor = rtc.couple(pc, id, signaller, extend({}, opts, {
         logger: mbus('pc.' + id, signaller)
       }));
@@ -264,17 +274,23 @@ module.exports = function(signalhost, opts) {
       // Apply the monitor to the call
       call.monitor = monitor;
 
-      // Fire the couple event
-      signaller('peer:couple', id, pc, data, monitor);
-
       // once active, trigger the peer connect event
-      monitor.once('connected', calls.start.bind(null, id, pc, data));
-      monitor.once('closed', calls.end.bind(null, id));
+      monitor.once('connected', function() {
+        clearPending('connected successfully');
+        calls.start(id, pc, data);
+      });
+      monitor.once('closed', function() {
+        clearPending('closed');;
+        calls.end(id);
+      });
       monitor.once('failed', calls.fail.bind(null, id));
 
       // The following states are intermediate states based on the disconnection timer
       monitor.once('failing', calls.failing.bind(null, id));
       monitor.once('recovered', calls.recovered.bind(null, id));
+
+      // Fire the couple event
+      signaller('peer:couple', id, pc, data, monitor);
 
       // if we are the master connnection, create the offer
       // NOTE: this only really for the sake of politeness, as rtc couple
@@ -283,7 +299,7 @@ module.exports = function(signalhost, opts) {
         monitor.createOffer();
       }
 
-      delete initializing[id];
+      signaller('peer:prepared', id);
     });
   }
 
@@ -375,8 +391,9 @@ module.exports = function(signalhost, opts) {
     var activeCall = id && calls.get(id);
 
     // if we have received an update for a peer that has no active calls,
+    // and is not currently in the process of setting up a call
     // then pass this onto the announce handler
-    if (id && (! activeCall)) {
+    if (id && (! activeCall) && !pending[id]) {
       debug('received peer update from peer ' + id + ', no active calls');
       return signaller.reconnectTo(id);
     }
@@ -717,6 +734,7 @@ module.exports = function(signalhost, opts) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
         debug('[' + signaller.id + '] reannouncing');
+        console.error('reannouncing');
         signaller.announce(profile);
       }, (opts || {}).updateDelay || 1000);
     }
