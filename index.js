@@ -734,7 +734,6 @@ module.exports = function(signalhost, opts) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
         debug('[' + signaller.id + '] reannouncing');
-        console.error('reannouncing');
         signaller.announce(profile);
       }, (opts || {}).updateDelay || 1000);
     }
