@@ -646,7 +646,7 @@ module.exports = function(signalhost, opts) {
       else {
         try {
           call.pc.removeStream(stream);
-        } catch (err) {
+        } catch (e) {
           console.error('Failed to remove media stream', e);
         }
       }
