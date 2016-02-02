@@ -35,3 +35,10 @@ after_failure:
 notifications:
   email:
   - nathan.oehlman@nicta.com.au
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
