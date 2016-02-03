@@ -626,7 +626,30 @@ module.exports = function(signalhost, opts) {
 
     // remove the stream from any active calls
     calls.values().forEach(function(call) {
-      call.pc.removeStream(stream);
+
+      // If `RTCPeerConnection.removeTrack` exists (Firefox), then use that
+      // as `RTCPeerConnection.removeStream` is not supported
+      if (call.pc.removeTrack) {
+        stream.getTracks().forEach(function(track) {
+          try {
+            call.pc.removeTrack(track);
+          } catch (e) {
+            // When using LocalMediaStreamTracks, this seems to throw an error due to
+            // LocalMediaStreamTrack not implementing the RTCRtpSender inteface.
+            // Without `removeStream` and with `removeTrack` not allowing for local stream
+            // removal, this needs some thought when dealing with FF renegotiation
+            console.error('Error removing media track', e);
+          }
+        });
+      }
+      // Otherwise we just use `RTCPeerConnection.removeStream`
+      else {
+        try {
+          call.pc.removeStream(stream);
+        } catch (e) {
+          console.error('Failed to remove media stream', e);
+        }
+      }
     });
 
     // remove the stream from the localStreams array
