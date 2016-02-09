@@ -280,8 +280,11 @@ module.exports = function(signalhost, opts) {
         calls.start(id, pc, data);
       });
       monitor.once('closed', function() {
-        clearPending('closed');;
+        clearPending('closed');
         calls.end(id);
+      });
+      monitor.once('aborted', function() {
+        clearPending('aborted');
       });
       monitor.once('failed', calls.fail.bind(null, id));
 
@@ -442,7 +445,10 @@ module.exports = function(signalhost, opts) {
       data = undefined;
     }
 
+    // Abort any current calls
+    calls.abort(sender.id);
     connect(sender.id, data || {});
+
     // If this is the master, echo the reconnection back to the peer instructing that
     // the reconnection has been accepted and to connect
     var isMaster = signaller.isMaster(sender.id);
@@ -803,6 +809,8 @@ module.exports = function(signalhost, opts) {
     // message back instructing the connection to start
     var isMaster = signaller.isMaster(id);
     if (isMaster) {
+      // Abort any current calls
+      calls.abort(id);
       return connect(id, reconnectOpts);
     }
   };
