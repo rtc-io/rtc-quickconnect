@@ -286,7 +286,10 @@ module.exports = function(signalhost, opts) {
       monitor.once('aborted', function() {
         clearPending('aborted');
       });
-      monitor.once('failed', calls.fail.bind(null, id));
+      monitor.once('failed', function() {
+        clearPending('failed');
+        calls.fail(id);
+      });
 
       // The following states are intermediate states based on the disconnection timer
       monitor.once('failing', calls.failing.bind(null, id));
