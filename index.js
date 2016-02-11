@@ -393,6 +393,9 @@ module.exports = function(signalhost, opts) {
   }
 
   function handlePeerUpdate(data) {
+    // Do not allow peer updates if we are not announced
+    if (!announced) return;
+
     var id = data && data.id;
     var activeCall = id && calls.get(id);
 
@@ -443,7 +446,6 @@ module.exports = function(signalhost, opts) {
 
     // Sender arguments are always last
     if (!message) {
-      console.log('message:reconnect no message argument');
       message = sender;
       sender = data;
       data = undefined;
@@ -451,7 +453,6 @@ module.exports = function(signalhost, opts) {
 
     // Abort any current calls
     calls.abort(sender.id);
-    console.log('2. reconnecting to ' + sender.id + ' with ' + JSON.stringify(data || {}));
     signaller('peer:reconnecting', sender.id, data || {});
     connect(sender.id, data || {});
 
@@ -526,6 +527,9 @@ module.exports = function(signalhost, opts) {
   signaller.close = function() {
     // We are no longer announced
     announced = false;
+
+    // Remove any pending update annoucements
+    if (updateTimer) clearTimeout(updateTimer);
 
     // Cleanup
     signaller.endCalls();
@@ -768,6 +772,8 @@ module.exports = function(signalhost, opts) {
     if (announced) {
       clearTimeout(updateTimer);
       updateTimer = setTimeout(function() {
+        // Check that our announced status hasn't changed
+        if (!announced) return;
         debug('[' + signaller.id + '] reannouncing');
         signaller.announce(profile);
       }, (opts || {}).updateDelay || 1000);
@@ -818,7 +824,6 @@ module.exports = function(signalhost, opts) {
 
       // Abort any current calls
       calls.abort(id);
-      console.log('1. reconnecting to ' + id + ' with ' + JSON.stringify(reconnectOpts || {}));
       signaller('peer:reconnecting', id, reconnectOpts || {});
       return connect(id, reconnectOpts);
     }
