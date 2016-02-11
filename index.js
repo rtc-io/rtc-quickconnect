@@ -183,9 +183,13 @@ module.exports = function(signalhost, opts) {
   }
 
   function clearPending(msg) {
-    if (!pending[id]) return;
     debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
-    delete pending[id];
+    if (pending[id]) {
+      delete pending[id];
+    }
+    if (reconnecting[id]) {
+      delete reconnecting[id];
+    }
   }
 
   function connect(id, connectOpts) {
