@@ -635,6 +635,13 @@ module.exports = function(signalhost, opts) {
   signaller.registerScheme = schemes.add;
 
   /**
+   #### getSche,e
+
+   Returns the connection sheme given by ID
+  **/
+  signaller.getScheme = schemes.get;
+
+  /**
     #### removeStream
 
     ```
