@@ -450,6 +450,7 @@ module.exports = function(signalhost, opts) {
 
     // Abort any current calls
     calls.abort(sender.id);
+    signaller('peer:reconnecting', sender.id, data || {});
     connect(sender.id, data || {});
 
     // If this is the master, echo the reconnection back to the peer instructing that
@@ -812,8 +813,10 @@ module.exports = function(signalhost, opts) {
     // message back instructing the connection to start
     var isMaster = signaller.isMaster(id);
     if (isMaster) {
+
       // Abort any current calls
       calls.abort(id);
+      signaller('peer:reconnecting', id, reconnectOpts || {});
       return connect(id, reconnectOpts);
     }
   };
