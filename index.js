@@ -137,6 +137,8 @@ module.exports = function(signalhost, opts) {
   // create the known data channels registry
   var channels = {};
   var pending = {};
+  // Reconnecting indicates peers that are in the process of reconnecting
+  var reconnecting = {};
 
   // save the plugins passed to the signaller
   var plugins = signaller.plugins = (opts || {}).plugins || [];
@@ -180,6 +182,12 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
+  function clearPending(msg) {
+    if (!pending[id]) return;
+    debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
+    delete pending[id];
+  }
+
   function connect(id, connectOpts) {
     debug('connecting to ' + id);
     if (!id) return debug('invalid target peer ID');
@@ -207,12 +215,6 @@ module.exports = function(signalhost, opts) {
     calls.end(id);
 
     signaller('peer:prepare', id, data, scheme);
-
-    function clearPending(msg) {
-      if (!pending[id]) return;
-      debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
-      delete pending[id];
-    }
 
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
@@ -402,7 +404,7 @@ module.exports = function(signalhost, opts) {
     // if we have received an update for a peer that has no active calls,
     // and is not currently in the process of setting up a call
     // then pass this onto the announce handler
-    if (id && (! activeCall) && !pending[id]) {
+    if (id && (! activeCall) && !pending[id] && !reconnecting[id]) {
       debug('received peer update from peer ' + id + ', no active calls');
       return signaller.reconnectTo(id);
     }
@@ -453,6 +455,7 @@ module.exports = function(signalhost, opts) {
 
     // Abort any current calls
     calls.abort(sender.id);
+    delete reconnecting[id];
     signaller('peer:reconnecting', sender.id, data || {});
     connect(sender.id, data || {});
 
@@ -826,6 +829,10 @@ module.exports = function(signalhost, opts) {
       calls.abort(id);
       signaller('peer:reconnecting', id, reconnectOpts || {});
       return connect(id, reconnectOpts);
+    }
+    // Flag that we are waiting for the master to indicate the reconnection is a go
+    else {
+      reconnecting[id] = Date.now();
     }
   };
 
