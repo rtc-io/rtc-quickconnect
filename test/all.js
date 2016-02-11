@@ -8,9 +8,7 @@ function createSignaller(opts) {
   }, opts));
 }
 
-for (var i = 0; i < 2; i++) {
-	require('rtc-quickconnect-test')(
-	  require('..'),
-	  createSignaller
-	);
-}
+require('rtc-quickconnect-test')(
+  require('..'),
+  createSignaller
+);

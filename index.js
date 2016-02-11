@@ -182,16 +182,6 @@ module.exports = function(signalhost, opts) {
     }, 0);
   }
 
-  function clearPending(msg) {
-    debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
-    if (pending[id]) {
-      delete pending[id];
-    }
-    if (reconnecting[id]) {
-      delete reconnecting[id];
-    }
-  }
-
   function connect(id, connectOpts) {
     debug('connecting to ' + id);
     if (!id) return debug('invalid target peer ID');
@@ -219,6 +209,16 @@ module.exports = function(signalhost, opts) {
     calls.end(id);
 
     signaller('peer:prepare', id, data, scheme);
+
+    function clearPending(msg) {
+      debug('connection for ' + id + ' is no longer pending [' + (msg || 'no reason') + '], connect available again');
+      if (pending[id]) {
+        delete pending[id];
+      }
+      if (reconnecting[id]) {
+        delete reconnecting[id];
+      }
+    }
 
     // Regenerate ICE servers (or use existing cached ICE)
     generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
@@ -456,10 +456,11 @@ module.exports = function(signalhost, opts) {
       sender = data;
       data = undefined;
     }
+    if (!sender.id) return console.warn('Could not reconnect, no sender ID');
 
     // Abort any current calls
     calls.abort(sender.id);
-    delete reconnecting[id];
+    delete reconnecting[sender.id];
     signaller('peer:reconnecting', sender.id, data || {});
     connect(sender.id, data || {});
 
