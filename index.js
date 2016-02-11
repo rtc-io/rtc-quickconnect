@@ -410,6 +410,7 @@ module.exports = function(signalhost, opts) {
     // then pass this onto the announce handler
     if (id && (! activeCall) && !pending[id] && !reconnecting[id]) {
       debug('received peer update from peer ' + id + ', no active calls');
+      signaller('peer:autoreconnect', id);
       return signaller.reconnectTo(id);
     }
   }
@@ -838,7 +839,13 @@ module.exports = function(signalhost, opts) {
     if (isMaster) {
 
       // Abort any current calls
-      calls.abort(id);
+      signaller('log', 'aborting call');
+      try {
+        calls.abort(id);
+      } catch(e) {
+        signaller('log', e.message);
+      }
+      signaller('log', 'call aborted');
       signaller('peer:reconnecting', id, reconnectOpts || {});
       return connect(id, reconnectOpts);
     }
