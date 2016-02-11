@@ -443,6 +443,7 @@ module.exports = function(signalhost, opts) {
 
     // Sender arguments are always last
     if (!message) {
+      console.log('message:reconnect no message argument');
       message = sender;
       sender = data;
       data = undefined;
@@ -450,6 +451,7 @@ module.exports = function(signalhost, opts) {
 
     // Abort any current calls
     calls.abort(sender.id);
+    console.log('2. reconnecting to ' + sender.id + ' with ' + JSON.stringify(data || {}));
     signaller('peer:reconnecting', sender.id, data || {});
     connect(sender.id, data || {});
 
@@ -816,6 +818,7 @@ module.exports = function(signalhost, opts) {
 
       // Abort any current calls
       calls.abort(id);
+      console.log('1. reconnecting to ' + id + ' with ' + JSON.stringify(reconnectOpts || {}));
       signaller('peer:reconnecting', id, reconnectOpts || {});
       return connect(id, reconnectOpts);
     }
