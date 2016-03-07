@@ -358,9 +358,8 @@ module.exports = function(signalhost, opts) {
     }
 
     // If the channel has failed to create for some reason, recreate the channel
-    function channelFailed() {
-      debug('failed to open channel ' + channel.label + ', retrying');
-
+    function recreateChannel() {
+      debug('recreating data channel: ' + channel.label);
       // Clear timers
       clearInterval(channelMonitor);
       clearTimeout(channelConnectionTimer);
@@ -397,7 +396,22 @@ module.exports = function(signalhost, opts) {
       // If the connection has connected, but the channel is stuck in the connecting state
       // start a timer. If this expires, then we will attempt to created the data channel
       else if (pc.iceConnectionState === 'connected' && channel.readyState === 'connecting' && !channelConnectionTimer) {
-        channelConnectionTimer = setTimeout(channelFailed, (opts || {}).channelTimeout || 1000);
+        channelConnectionTimer = setTimeout(function() {
+          if (channel.readyState !== 'connecting') return;
+          var args = [ data.id, channel, data, pc ];
+
+          // emit the plain channel:failed event
+          signaller.apply(signaller, ['channel:failed'].concat(args));
+
+          // emit the channel:opened:%label% eve
+          signaller.apply(
+            signaller,
+            ['channel:failed:' + channel.label].concat(args)
+          );
+
+          // Recreate the channel
+          return recreateChannel();
+        }, (opts || {}).channelTimeout || 2000);
       }
 
     }, 500);
