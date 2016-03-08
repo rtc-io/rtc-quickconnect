@@ -327,6 +327,7 @@ module.exports = function(signalhost, opts) {
 
   function gotPeerChannel(channel, pc, data) {
     var channelMonitor;
+    var channelConnectionTimer;
 
     function channelReady() {
       var call = calls.get(data.id);
@@ -335,6 +336,7 @@ module.exports = function(signalhost, opts) {
       // decouple the channel.onopen listener
       debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
       clearInterval(channelMonitor);
+      clearTimeout(channelConnectionTimer);
       channel.onopen = null;
 
       // save the channel
@@ -355,6 +357,22 @@ module.exports = function(signalhost, opts) {
       );
     }
 
+    // If the channel has failed to create for some reason, recreate the channel
+    function recreateChannel() {
+      debug('recreating data channel: ' + channel.label);
+      // Clear timers
+      clearInterval(channelMonitor);
+      clearTimeout(channelConnectionTimer);
+
+      // Force the channel to close if it is in an open state
+      if (['connecting', 'open'].indexOf(channel.readyState) !== -1) {
+        channel.close();
+      }
+
+      // Recreate the channel using the cached options
+      signaller.createDataChannel(channel.label, channels[channel.label])
+    }
+
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id);
     if (channel.readyState === 'open') {
       return channelReady();
@@ -368,10 +386,34 @@ module.exports = function(signalhost, opts) {
       debug('checking channel state, current state = ' + channel.readyState + ', connection state ' + pc.iceConnectionState);
       if (channel.readyState === 'open') {
         channelReady();
-      } else if (['failed', 'closed'].indexOf(pc.iceConnectionState) !== -1) {
+      }
+      // If the underlying connection has failed/closed, then terminate the monitor
+      else if (['failed', 'closed'].indexOf(pc.iceConnectionState) !== -1) {
         debug('connection has terminated, cancelling channel monitor');
         clearInterval(channelMonitor);
+        clearTimeout(channelConnectionTimer);
       }
+      // If the connection has connected, but the channel is stuck in the connecting state
+      // start a timer. If this expires, then we will attempt to created the data channel
+      else if (pc.iceConnectionState === 'connected' && channel.readyState === 'connecting' && !channelConnectionTimer) {
+        channelConnectionTimer = setTimeout(function() {
+          if (channel.readyState !== 'connecting') return;
+          var args = [ data.id, channel, data, pc ];
+
+          // emit the plain channel:failed event
+          signaller.apply(signaller, ['channel:failed'].concat(args));
+
+          // emit the channel:opened:%label% eve
+          signaller.apply(
+            signaller,
+            ['channel:failed:' + channel.label].concat(args)
+          );
+
+          // Recreate the channel
+          return recreateChannel();
+        }, (opts || {}).channelTimeout || 2000);
+      }
+
     }, 500);
   }
 
