@@ -1,14 +1,19 @@
 var quickconnect = require('../');
 var opts = {
-  ns: 'dctest',
-  iceServers: [
-    { url: 'stun:stun.l.google.com:19302' }
-  ]
+  room: 'icecallback',
+  ice: function(opts, callback) {
+    console.log('requesting ICE servers for connection to ' + opts.targetPeer);
+    return callback(null, [{ url: 'stun:stun.l.google.com:19302'}]);
+  }
 };
 
 quickconnect('https://switchboard.rtc.io/', opts)
   // tell quickconnect we want a datachannel called test
   .createDataChannel('iceconfig')
+  // Log the ice servers we are using
+  .on('peer:iceservers', function(id, scheme, iceServers) {
+    console.log('using ' + iceServers.length + ' ICE servers for connection to ' + id);
+  })
   // when the test channel is open, let us know
   .on('channel:opened:iceconfig', function(id, dc) {
     dc.onmessage = function(evt) {
