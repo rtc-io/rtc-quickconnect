@@ -460,12 +460,14 @@ module.exports = function(signalhost, opts) {
   function handlePeerLeave(data) {
     var id = data && data.id;
     if (id) {
+      delete pending[id];
       calls.end(id);
     }
   }
 
   function handlePeerClose(id) {
     if (!announced) return;
+    delete pending[id];
     debug('call has from ' + signaller.id + ' to ' + id + ' has ended, reannouncing');
     return signaller.profile();
   }
