@@ -284,6 +284,11 @@ function:
   `constraints: {"optional": [ {'googIPv6': 'false'} ] }`  or
   `constraints: {"optional": [ {RtpDataChannels: true} ] }`
 
+- `sdpfilter` (default '')
+
+  An optional function to provide for sdp munging, e.g.
+  `sdpfilter: function(sdp) { console.log('filtering sdp'); return limitBandwidthSDP(sdp);}`
+
 
 #### Options for P2P negotiation
 
