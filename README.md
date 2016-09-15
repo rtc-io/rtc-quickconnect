@@ -280,9 +280,9 @@ function:
 
 - `constraints` (default: '')
 
-  An optional RTCConstraints object that is handed to the , e.g.
-  constraints: {"optional": [ {'googIPv6': 'false'} ] }  or
-  constraints: {"optional": [ {RtpDataChannels: true} ] }
+  An optional RTCConstraints object that is handed to the RTCPeerConnection call, e.g.
+  `constraints: {"optional": [ {'googIPv6': 'false'} ] }`  or
+  `constraints: {"optional": [ {RtpDataChannels: true} ] }`
 
 
 #### Options for P2P negotiation
