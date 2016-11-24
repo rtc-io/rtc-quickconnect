@@ -342,6 +342,12 @@ module.exports = function(signalhost, opts) {
       // save the channel
       if (call) {
         call.channels.set(channel.label, channel);
+
+        // Remove the channel from the call on close
+        channel.onclose = function() {
+          debug('channel "' + channel.label + '" to ' + data.id + ' has closed');
+          call.channels.remove(channel.label);
+        }
       }
 
       // trigger the %channel.label%:open event
@@ -615,6 +621,10 @@ module.exports = function(signalhost, opts) {
 
       // if we are the master connection, create the data channel
       if (call && call.pc && signaller.isMaster(peerId)) {
+        var existingChannel = call.channels.get(label);
+        if (existingChannel && existingChannel.readyState !== 'closed') {
+          return debug('Attempted to create data channel "' + label + '" for a call to ' + peerId + ' but an open channel already exists');
+        }
         dc = call.pc.createDataChannel(label, opts);
         gotPeerChannel(dc, call.pc, getPeerData(peerId));
       }
