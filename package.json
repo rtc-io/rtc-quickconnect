@@ -47,7 +47,7 @@
     "rtc-filter-grayscale": "~0.1.0",
     "rtc-media": "^1",
     "rtc-plugin-temasys": "^1.1.1",
-    "rtc-quickconnect-test": "^2.0.0",
+    "rtc-quickconnect-test": "^2.3.0",
     "rtc-switchboard": "^3.0.0",
     "rtc-videoproc": "^0.11.0",
     "tap-spec": "^3.0.0",
