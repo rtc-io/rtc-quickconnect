@@ -343,10 +343,20 @@ module.exports = function(signalhost, opts) {
       if (call) {
         call.channels.set(channel.label, channel);
 
-        // Remove the channel from the call on close
+        // Remove the channel from the call on close, and emit the required events
         channel.onclose = function() {
           debug('channel "' + channel.label + '" to ' + data.id + ' has closed');
+          var args = [data.id, channel, channel.label];
+          // decouple the events
+          channel.onopen = null;
+          // Remove the channel entry
           call.channels.remove(channel.label);
+
+          // emit the plain channel:closed event
+          signaller.apply(signaller, ['channel:closed'].concat(args));
+
+          // emit the labelled version of the event
+          signaller.apply(signaller, ['channel:closed:' + channel.label].concat(args));
         }
       }
 
