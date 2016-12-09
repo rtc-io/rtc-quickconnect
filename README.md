@@ -10,7 +10,7 @@ configuration you should drill down into lower level components of the
 
 [![NPM](https://nodei.co/npm/rtc-quickconnect.png)](https://nodei.co/npm/rtc-quickconnect/)
 
-[![Build Status](https://api.travis-ci.org/rtc-io/rtc-quickconnect.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-quickconnect) [![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)](https://github.com/dominictarr/stability#unstable) 
+[![Build Status](https://api.travis-ci.org/rtc-io/rtc-quickconnect.svg?branch=master)](https://travis-ci.org/rtc-io/rtc-quickconnect) [![unstable](https://img.shields.io/badge/stability-unstable-yellowgreen.svg)](https://github.com/dominictarr/stability#unstable)
 [![rtc.io google group](http://img.shields.io/badge/discuss-rtc.io-blue.svg)](https://groups.google.com/forum/#!forum/rtc-io)
 
 
@@ -44,7 +44,7 @@ The peer level events provided in quickconnect provide you the ability to tap in
 
 - `peer:couple => funtion(id, peerconnection, data, monitor)`
 
-  The `peer:couple` event is emitted when once quickconnect has [coupled](https://github.com/rtc-io/rtc-tools#rtc-toolscouple) to it's remote counterpart.
+  The `peer:couple` event is emitted when once quickconnect has [coupled](https://github.com/rtc-io/rtc-tools#rtc-toolscouple) to its remote counterpart.
 
 ### Call Level Events
 
@@ -95,7 +95,7 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
 
 - `stream:added => function(id, stream, data)`
 
-  The `stream:added` event is triggered when an `RTCPeerConnection` has successfully been established to another peer that contains remote streams.  Additionally, if you are using quickconnect in it's "reactive" mode then you will also receive `stream:added` events as streams are dynamically added to the connection by the remote peer.
+  The `stream:added` event is triggered when an `RTCPeerConnection` has successfully been established to another peer that contains remote streams.  Additionally, if you are using quickconnect in its "reactive" mode then you will also receive `stream:added` events as streams are dynamically added to the connection by the remote peer.
 
 - `stream:removed => function(id)`
 
