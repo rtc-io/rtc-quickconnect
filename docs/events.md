@@ -12,7 +12,7 @@ The peer level events provided in quickconnect provide you the ability to tap in
 
 - `peer:couple => funtion(id, peerconnection, data, monitor)`
 
-  The `peer:couple` event is emitted when once quickconnect has [coupled](https://github.com/rtc-io/rtc-tools#rtc-toolscouple) to it's remote counterpart.
+  The `peer:couple` event is emitted when once quickconnect has [coupled](https://github.com/rtc-io/rtc-tools#rtc-toolscouple) to its remote counterpart.
 
 ### Call Level Events
 
@@ -20,7 +20,7 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
 
 - `call:started => function(id, peerconnection, data)`
 
-  Triggered once a peer connection has been established been established between this quickconnect instance and another.
+  Triggered once a peer connection has been established between this quickconnect instance and another.
 
 - `call:ended => function(id)`
 
@@ -59,7 +59,7 @@ A "call" in quickconnect is equivalent to an established `RTCPeerConnection` bet
 
 - `stream:added => function(id, stream, data)`
 
-  The `stream:added` event is triggered when an `RTCPeerConnection` has successfully been established to another peer that contains remote streams.  Additionally, if you are using quickconnect in it's "reactive" mode then you will also receive `stream:added` events as streams are dynamically added to the connection by the remote peer.
+  The `stream:added` event is triggered when an `RTCPeerConnection` has successfully been established to another peer that contains remote streams.  Additionally, if you are using quickconnect in its "reactive" mode then you will also receive `stream:added` events as streams are dynamically added to the connection by the remote peer.
 
 - `stream:removed => function(id)`
 
