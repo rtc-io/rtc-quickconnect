@@ -195,7 +195,6 @@ module.exports = function(signalhost, opts) {
     var pc;
     var monitor;
     var call;
-
     // if the room is not a match, abort
     if (data.room !== room) {
       return debug('mismatching room, expected: ' + room + ', got: ' + (data && data.room));
@@ -523,6 +522,8 @@ module.exports = function(signalhost, opts) {
     calls.abort(sender.id);
     delete reconnecting[sender.id];
     signaller('peer:reconnecting', sender.id, data || {});
+    // Reapply sender information in case aborts caused it to be removed
+    signaller.peers.set(sender.id, sender);
     connect(sender.id, data || {});
 
     // If this is the master, echo the reconnection back to the peer instructing that
@@ -896,14 +897,15 @@ module.exports = function(signalhost, opts) {
    **/
   signaller.reconnectTo = function(id, reconnectOpts) {
     if (!id) return;
-    signaller.to(id).send('/reconnect', reconnectOpts);
+    signaller.to(id).send('/reconnect', reconnectOpts)
     // If this is the master, connect, otherwise the master will send a /reconnect
     // message back instructing the connection to start
     var isMaster = signaller.isMaster(id);
     if (isMaster) {
-
       // Abort any current calls
       signaller('log', 'aborting call');
+      // Preserve peer data
+      var peerData = signaller.peers.get(id);
       try {
         calls.abort(id);
       } catch(e) {
@@ -911,6 +913,8 @@ module.exports = function(signalhost, opts) {
       }
       signaller('log', 'call aborted');
       signaller('peer:reconnecting', id, reconnectOpts || {});
+      // Reapply peer data in case it was deleted during abort
+      signaller.peers.set(id, peerData);
       return connect(id, reconnectOpts);
     }
     // Flag that we are waiting for the master to indicate the reconnection is a go
