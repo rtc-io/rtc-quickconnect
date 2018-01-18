@@ -1,5 +1,6 @@
 /* jshint node: true */
 /* global location */
+/*test*/
 'use strict';
 
 var rtc = require('rtc-tools');
