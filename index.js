@@ -731,11 +731,18 @@ module.exports = function(signalhost, opts) {
           try {
             call.pc.removeTrack(track);
           } catch (e) {
+            
+            // In latest versions of chrome if removeTrack throws exception try removing the stream it self
+            try {
+              call.pc.removeStream(stream);
+            } catch (e) {
+              console.error('Failed to remove media stream', e);
+            }
             // When using LocalMediaStreamTracks, this seems to throw an error due to
             // LocalMediaStreamTrack not implementing the RTCRtpSender inteface.
             // Without `removeStream` and with `removeTrack` not allowing for local stream
             // removal, this needs some thought when dealing with FF renegotiation
-            console.error('Error removing media track', e);
+            console.warn('Error removing media track', e);
           }
         });
       }
