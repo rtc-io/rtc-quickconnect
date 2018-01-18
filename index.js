@@ -558,9 +558,16 @@ module.exports = function(signalhost, opts) {
     localStreams.push(stream);
 
     // if we have any active calls, then add the stream
-    calls.values().forEach(function(data) {
-      data.pc.addStream(stream);
-    });
+    if (data.pc.addTrack) {
+       // Firefox + Chrome 64 and above
+       stream.getTracks().forEach(track => data.pc.addTrack(track, stream));
+   }
+   else{
+       // Upto chrome 63
+     calls.values().forEach(function(data) {
+       data.pc.addStream(stream);
+     });
+   }
 
     checkReadyToAnnounce();
     return signaller;
