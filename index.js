@@ -102,7 +102,7 @@ var extend = require('cog/extend');
   passed to quickconnect are also passed onto this function.
 
 **/
-module.exports = function(signalhost, opts) {
+module.exports = function (signalhost, opts) {
   var hash = typeof location != 'undefined' && location.hash.slice(1);
   var signaller = require('rtc-pluggable-signaller')(extend({
     signaller: signalhost,
@@ -157,12 +157,12 @@ module.exports = function(signalhost, opts) {
       return;
     }
 
-    if (! allowJoin) {
+    if (!allowJoin) {
       return;
     }
 
     // if we have a plugin but it's not initialized we aren't ready
-    if (plugin && (! pluginReady)) {
+    if (plugin && (!pluginReady)) {
       return;
     }
 
@@ -173,7 +173,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // announce ourselves to our new friend
-    announceTimer = setTimeout(function() {
+    announceTimer = setTimeout(function () {
       var data = extend({ room: room }, profile);
 
       // announce and emit the local announce event
@@ -220,7 +220,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // Regenerate ICE servers (or use existing cached ICE)
-    generateIceServers(extend({targetPeer: id}, opts, (scheme || {}).connection), function(err, iceServers) {
+    generateIceServers(extend({ targetPeer: id }, opts, (scheme || {}).connection), function (err, iceServers) {
       if (err) {
         signaller('icegeneration:error', id, scheme && scheme.id, err);
       } else {
@@ -240,7 +240,7 @@ module.exports = function(signalhost, opts) {
       call = calls.create(id, pc, data);
 
       // add the local streams
-      localStreams.forEach(function(stream) {
+      localStreams.forEach(function (stream) {
         pc.addStream(stream);
       });
 
@@ -251,16 +251,16 @@ module.exports = function(signalhost, opts) {
         debug('is master, creating data channels: ', Object.keys(channels));
 
         // create the channels
-        Object.keys(channels).forEach(function(label) {
-         gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
+        Object.keys(channels).forEach(function (label) {
+          gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
         });
       }
       else {
-        pc.ondatachannel = function(evt) {
+        pc.ondatachannel = function (evt) {
           var channel = evt && evt.channel;
 
           // if we have no channel, abort
-          if (! channel) {
+          if (!channel) {
             return;
           }
 
@@ -280,18 +280,18 @@ module.exports = function(signalhost, opts) {
       call.monitor = monitor;
 
       // once active, trigger the peer connect event
-      monitor.once('connected', function() {
+      monitor.once('connected', function () {
         clearPending('connected successfully');
         calls.start(id, pc, data);
       });
-      monitor.once('closed', function() {
+      monitor.once('closed', function () {
         clearPending('closed');
         calls.end(id);
       });
-      monitor.once('aborted', function() {
+      monitor.once('aborted', function () {
         clearPending('aborted');
       });
-      monitor.once('failed', function() {
+      monitor.once('failed', function () {
         clearPending('failed');
         calls.fail(id);
       });
@@ -317,7 +317,7 @@ module.exports = function(signalhost, opts) {
   function getActiveCall(peerId) {
     var call = calls.get(peerId);
 
-    if (! call) {
+    if (!call) {
       throw new Error('No active call for peer: ' + peerId);
     }
 
@@ -330,7 +330,7 @@ module.exports = function(signalhost, opts) {
 
     function channelReady() {
       var call = calls.get(data.id);
-      var args = [ data.id, channel, data, pc ];
+      var args = [data.id, channel, data, pc];
 
       // decouple the channel.onopen listener
       debug('reporting channel "' + channel.label + '" ready, have call: ' + (!!call));
@@ -343,7 +343,7 @@ module.exports = function(signalhost, opts) {
         call.channels.set(channel.label, channel);
 
         // Remove the channel from the call on close, and emit the required events
-        channel.onclose = function() {
+        channel.onclose = function () {
           debug('channel "' + channel.label + '" to ' + data.id + ' has closed');
           var args = [data.id, channel, channel.label];
           // decouple the events
@@ -397,7 +397,7 @@ module.exports = function(signalhost, opts) {
     channel.onopen = channelReady;
 
     // monitor the channel open (don't trust the channel open event just yet)
-    channelMonitor = setInterval(function() {
+    channelMonitor = setInterval(function () {
       debug('checking channel state, current state = ' + channel.readyState + ', connection state ' + pc.iceConnectionState);
       if (channel.readyState === 'open') {
         channelReady();
@@ -411,9 +411,9 @@ module.exports = function(signalhost, opts) {
       // If the connection has connected, but the channel is stuck in the connecting state
       // start a timer. If this expires, then we will attempt to created the data channel
       else if (pc.iceConnectionState === 'connected' && channel.readyState === 'connecting' && !channelConnectionTimer) {
-        channelConnectionTimer = setTimeout(function() {
+        channelConnectionTimer = setTimeout(function () {
           if (channel.readyState !== 'connecting') return;
-          var args = [ data.id, channel, data, pc ];
+          var args = [data.id, channel, data, pc];
 
           // emit the plain channel:failed event
           signaller.apply(signaller, ['channel:failed'].concat(args));
@@ -433,7 +433,7 @@ module.exports = function(signalhost, opts) {
   }
 
   function initPlugin() {
-    return plugin && plugin.init(opts, function(err) {
+    return plugin && plugin.init(opts, function (err) {
       if (err) {
         return console.error('Could not initialize plugin: ', err);
       }
@@ -465,7 +465,7 @@ module.exports = function(signalhost, opts) {
     // if we have received an update for a peer that has no active calls,
     // and is not currently in the process of setting up a call
     // then pass this onto the announce handler
-    if (id && (! activeCall) && !pending[id] && !reconnecting[id]) {
+    if (id && (!activeCall) && !pending[id] && !reconnecting[id]) {
       debug('received peer update from peer ' + id + ', no active calls');
       signaller('peer:autoreconnect', id);
       return signaller.reconnectTo(id);
@@ -488,9 +488,9 @@ module.exports = function(signalhost, opts) {
   }
 
   // if the room is not defined, then generate the room name
-  if (! room) {
+  if (!room) {
     // if the hash is not assigned, then create a random hash value
-    if (typeof location != 'undefined' && (! hash)) {
+    if (typeof location != 'undefined' && (!hash)) {
       hash = location.hash = '' + (Math.pow(2, 53) * Math.random());
     }
 
@@ -501,13 +501,13 @@ module.exports = function(signalhost, opts) {
     rtc.logger.enable.apply(rtc.logger, Array.isArray(debug) ? debugging : ['*']);
   }
 
-  signaller.on('peer:announce', function(data) {
+  signaller.on('peer:announce', function (data) {
     connect(data.id, { scheme: data.scheme });
   });
 
   signaller.on('peer:update', handlePeerUpdate);
 
-  signaller.on('message:reconnect', function(data, sender, message) {
+  signaller.on('message:reconnect', function (data, sender, message) {
     debug('received reconnect message');
 
     // Sender arguments are always last
@@ -554,20 +554,19 @@ module.exports = function(signalhost, opts) {
     can be added to future calls.
 
   **/
-  signaller.broadcast = signaller.addStream = function(stream) {
+  signaller.broadcast = signaller.addStream = function (stream) {
     localStreams.push(stream);
 
     // if we have any active calls, then add the stream
-    if (data.pc.addTrack) {
-       // Firefox + Chrome 64 and above
-       stream.getTracks().forEach(track => data.pc.addTrack(track, stream));
-   }
-   else{
-       // Upto chrome 63
-     calls.values().forEach(function(data) {
-       data.pc.addStream(stream);
-     });
-   }
+    calls.values().forEach(function (data) {
+      if (data.pc.addTrack) {
+        // Firefox + Chrome 64 and above
+        stream.getTracks().forEach(track => data.pc.addTrack(track, stream));
+      } else {
+        // Upto chrome 63
+        data.pc.addStream(stream);
+      }
+    });
 
     checkReadyToAnnounce();
     return signaller;
@@ -575,7 +574,7 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### endCall
-
+  
     The `endCall` function terminates the active call with the given ID.
     If a call with the call ID does not exist it will do nothing.
   **/
@@ -583,25 +582,25 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### endCalls()
-
+  
     The `endCalls` function terminates all the active calls that have been
     created in this quickconnect instance.  Calling `endCalls` does not
     kill the connection with the signalling server.
-
+  
   **/
-  signaller.endCalls = function() {
+  signaller.endCalls = function () {
     calls.keys().forEach(calls.end);
   };
 
   /**
     #### close()
-
+  
     The `close` function provides a convenient way of closing all associated
     peer connections.  This function simply uses the `endCalls` function and
     the underlying `leave` function of the signaller to do a "full cleanup"
     of all connections.
   **/
-  signaller.close = function() {
+  signaller.close = function () {
     // We are no longer announced
     announced = false;
 
@@ -615,25 +614,25 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### createDataChannel(label, config)
-
+  
     Request that a data channel with the specified `label` is created on
     the peer connection.  When the data channel is open and available, an
     event will be triggered using the label of the data channel.
-
+  
     For example, if a new data channel was requested using the following
     call:
-
+  
     ```js
     var qc = quickconnect('https://switchboard.rtc.io/').createDataChannel('test');
     ```
-
+  
     Then when the data channel is ready for use, a `test:open` event would
     be emitted by `qc`.
-
+  
   **/
-  signaller.createDataChannel = function(label, opts) {
+  signaller.createDataChannel = function (label, opts) {
     // create a channel on all existing calls
-    calls.keys().forEach(function(peerId) {
+    calls.keys().forEach(function (peerId) {
       var call = calls.get(peerId);
       var dc;
 
@@ -656,42 +655,42 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### join()
-
+  
     The `join` function is used when `manualJoin` is set to true when creating
     a quickconnect instance.  Call the `join` function once you are ready to
     join the signalling server and initiate connections with other people.
-
+  
   **/
-  signaller.join = function() {
+  signaller.join = function () {
     allowJoin = true;
     checkReadyToAnnounce();
   };
 
   /**
     #### `get(name)`
-
+  
     The `get` function returns the property value for the specified property name.
   **/
-  signaller.get = function(name) {
+  signaller.get = function (name) {
     return profile[name];
   };
 
   /**
     #### `getLocalStreams()`
-
+  
     Return a copy of the local streams that have currently been configured
   **/
-  signaller.getLocalStreams = function() {
+  signaller.getLocalStreams = function () {
     return [].concat(localStreams);
   };
 
   /**
     #### reactive()
-
+  
     Flag that this session will be a reactive connection.
-
+  
   **/
-  signaller.reactive = function() {
+  signaller.reactive = function () {
     // add the reactive flag
     opts = opts || {};
     opts.reactive = true;
@@ -702,49 +701,43 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### registerScheme
-
+  
     Registers a connection scheme for use, and check it for validity
    **/
   signaller.registerScheme = schemes.add;
 
   /**
    #### getSche,e
-
+  
    Returns the connection sheme given by ID
   **/
   signaller.getScheme = schemes.get;
 
   /**
     #### removeStream
-
+  
     ```
     removeStream(stream:MediaStream)
     ```
-
+  
     Remove the specified stream from both the local streams that are to
     be connected to new peers, and also from any active calls.
-
+  
   **/
-  signaller.removeStream = function(stream) {
+  signaller.removeStream = function (stream) {
     var localIndex = localStreams.indexOf(stream);
 
     // remove the stream from any active calls
-    calls.values().forEach(function(call) {
+    calls.values().forEach(function (call) {
 
       // If `RTCPeerConnection.removeTrack` exists (Firefox), then use that
       // as `RTCPeerConnection.removeStream` is not supported
       if (call.pc.removeTrack) {
-        stream.getTracks().forEach(function(track) {
+        stream.getTracks().forEach(function (track) {
           try {
-            call.pc.removeTrack(track);
+            //call.pc.removeTrack(track);
+            call.pc.removeTrack(call.pc.getSenders().find(function (sender) { return sender.track == track; }));
           } catch (e) {
-            
-            // In latest versions of chrome if removeTrack throws exception try removing the stream it self
-            try {
-              call.pc.removeStream(stream);
-            } catch (e) {
-              console.error('Failed to remove media stream', e);
-            }
             // When using LocalMediaStreamTracks, this seems to throw an error due to
             // LocalMediaStreamTrack not implementing the RTCRtpSender inteface.
             // Without `removeStream` and with `removeTrack` not allowing for local stream
@@ -773,19 +766,19 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### requestChannel
-
+  
     ```
     requestChannel(targetId, label, callback)
     ```
-
+  
     This is a function that can be used to respond to remote peers supplying
     a data channel as part of their configuration.  As per the `receiveStream`
     function this function will either fire the callback immediately if the
     channel is already available, or once the channel has been discovered on
     the call.
-
+  
   **/
-  signaller.requestChannel = function(targetId, label, callback) {
+  signaller.requestChannel = function (targetId, label, callback) {
     var call = getActiveCall(targetId);
     var channel = call && call.channels.get(label);
 
@@ -796,7 +789,7 @@ module.exports = function(signalhost, opts) {
     }
 
     // if not, wait for it
-    signaller.once('channel:opened:' + label, function(id, dc) {
+    signaller.once('channel:opened:' + label, function (id, dc) {
       callback(null, dc);
     });
 
@@ -805,20 +798,20 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### requestStream
-
+  
     ```
     requestStream(targetId, idx, callback)
     ```
-
+  
     Used to request a remote stream from a quickconnect instance. If the
     stream is already available in the calls remote streams, then the callback
     will be triggered immediately, otherwise this function will monitor
     `stream:added` events and wait for a match.
-
+  
     In the case that an unknown target is requested, then an exception will
     be thrown.
   **/
-  signaller.requestStream = function(targetId, idx, callback) {
+  signaller.requestStream = function (targetId, idx, callback) {
     var call = getActiveCall(targetId);
     var stream;
 
@@ -853,20 +846,20 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### profile(data)
-
+  
     Update the profile data with the attached information, so when
     the signaller announces it includes this data in addition to any
     room and id information.
-
+  
   **/
-  signaller.profile = function(data) {
+  signaller.profile = function (data) {
     extend(profile, data || {});
 
     // if we have already announced, then reannounce our profile to provide
     // others a `peer:update` event
     if (announced) {
       clearTimeout(updateTimer);
-      updateTimer = setTimeout(function() {
+      updateTimer = setTimeout(function () {
         // Check that our announced status hasn't changed
         if (!announced) return;
         debug('[' + signaller.id + '] reannouncing');
@@ -879,17 +872,17 @@ module.exports = function(signalhost, opts) {
 
   /**
     #### waitForCall
-
+  
     ```
     waitForCall(targetId, callback)
     ```
-
+  
     Wait for a call from the specified targetId.  If the call is already
     active the callback will be fired immediately, otherwise we will wait
     for a `call:started` event that matches the requested `targetId`
-
+  
   **/
-  signaller.waitForCall = function(targetId, callback) {
+  signaller.waitForCall = function (targetId, callback) {
     var call = calls.get(targetId);
 
     if (call && call.active) {
@@ -909,7 +902,7 @@ module.exports = function(signalhost, opts) {
     Attempts to reconnect to a certain target peer. It will close any existing
     call to that peer, and restart the connection process
    **/
-  signaller.reconnectTo = function(id, reconnectOpts) {
+  signaller.reconnectTo = function (id, reconnectOpts) {
     if (!id) return;
     signaller.to(id).send('/reconnect', reconnectOpts)
     // If this is the master, connect, otherwise the master will send a /reconnect
@@ -922,7 +915,7 @@ module.exports = function(signalhost, opts) {
       var peerData = signaller.peers.get(id);
       try {
         calls.abort(id);
-      } catch(e) {
+      } catch (e) {
         signaller('log', e.message);
       }
       signaller('log', 'call aborted');
@@ -963,7 +956,7 @@ module.exports = function(signalhost, opts) {
     initPlugin();
   } else {
     // Test if we are ready to announce
-    process.nextTick(function() {
+    process.nextTick(function () {
       checkReadyToAnnounce();
     });
   }
