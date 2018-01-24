@@ -542,7 +542,13 @@ module.exports = function(signalhost, opts) {
 
     // if we have any active calls, then add the stream
     calls.values().forEach(function(data) {
-      data.pc.addStream(stream);
+      if (data.pc.addTrack) {
+        // Firefox + Chrome 64 and above
+        stream.getTracks().forEach(track => data.pc.addTrack(track, stream));
+      } else {
+        // Upto chrome 63
+        data.pc.addStream(stream);
+      }
     });
 
     checkReadyToAnnounce();
@@ -708,7 +714,7 @@ module.exports = function(signalhost, opts) {
       if (call.pc.removeTrack) {
         stream.getTracks().forEach(function(track) {
           try {
-            call.pc.removeTrack(track);
+            call.pc.removeTrack(call.pc.getSenders().find(function (sender) { return sender.track == track; }));
           } catch (e) {
             // When using LocalMediaStreamTracks, this seems to throw an error due to
             // LocalMediaStreamTrack not implementing the RTCRtpSender inteface.
