@@ -737,11 +737,18 @@ module.exports = function(signalhost, opts) {
           try {
             call.pc.removeTrack(call.pc.getSenders().find(function (sender) { return sender.track == track; }));
           } catch (e) {
+
             // When using LocalMediaStreamTracks, this seems to throw an error due to
             // LocalMediaStreamTrack not implementing the RTCRtpSender inteface.
-            // Without `removeStream` and with `removeTrack` not allowing for local stream
-            // removal, this needs some thought when dealing with FF renegotiation
-            console.error('Error removing media track', e);
+            // If removeTrack does not work, we will try to removeStream instead
+            console.log('Unable to removeTrack from the peerconnection so will try and removeStream instead', e);
+
+            try {
+              call.pc.removeStream(stream);
+            } catch (e) {
+              console.error('Failed to remove media stream', e);
+            }
+    
           }
         });
       }
