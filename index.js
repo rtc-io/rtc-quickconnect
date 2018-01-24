@@ -1,5 +1,6 @@
 /* jshint node: true */
 /* global location */
+/*test*/
 'use strict';
 
 var rtc = require('rtc-tools');
@@ -561,7 +562,9 @@ module.exports = function(signalhost, opts) {
     calls.values().forEach(function(data) {
       if (data.pc.addTrack) {
         // Firefox + Chrome 64 and above
-        stream.getTracks().forEach(track => data.pc.addTrack(track, stream));
+        stream.getTracks().forEach(function (track) {
+          data.pc.addTrack(track, stream);
+        });
       } else {
         // Upto chrome 63
         data.pc.addStream(stream);
