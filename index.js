@@ -708,7 +708,7 @@ module.exports = function(signalhost, opts) {
       if (call.pc.removeTrack) {
         stream.getTracks().forEach(function(track) {
           try {
-            call.pc.removeTrack(call.pc.getSenders().find(function (sender) { return sender.track == track; }));
+            call.pc.removeTrack(track);
           } catch (e) {
 
             // When using LocalMediaStreamTracks, this seems to throw an error due to
