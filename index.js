@@ -149,6 +149,7 @@ module.exports = function (signalhost, opts) {
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
   var updateTimer = 0;
+  var CLOSED_STATES = ['failed', 'closed'];
 
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
@@ -402,9 +403,10 @@ module.exports = function (signalhost, opts) {
       if (channel.readyState === 'open') {
         channelReady();
       }
-      // If the underlying connection has failed/closed, then terminate the monitor
-      else if (['failed', 'closed'].indexOf(pc.iceConnectionState) !== -1) {
-        debug('connection has terminated, cancelling channel monitor');
+      // If the underlying connection has failed/closed, or if the ready state of the channel has transitioned to a closure
+      // state, then terminate the monitor
+      else if (CLOSED_STATES.indexOf(pc.iceConnectionState) !== -1 || CLOSED_STATES.indexOf(channel.readyState) !== -1) {
+        debug('connection or channel has terminated, cancelling channel monitor');
         clearInterval(channelMonitor);
         clearTimeout(channelConnectionTimer);
       }
