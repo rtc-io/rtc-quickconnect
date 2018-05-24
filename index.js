@@ -241,8 +241,10 @@ module.exports = function (signalhost, opts) {
       call = calls.create(id, pc, data);
 
       // add the local streams
+      // TODO: apply addTrack
       localStreams.forEach(function (stream) {
-        pc.addStream(stream);
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+        // pc.addStream(stream);
       });
 
       // add the data channels
