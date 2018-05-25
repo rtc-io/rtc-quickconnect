@@ -732,11 +732,6 @@ module.exports = function (signalhost, opts) {
   **/
   signaller.removeStream = function (stream) {
 
-    calls.keys().forEach(function (id) {
-      // add stream removing event, in case in the future onremovestream gets deprecated
-      signaller('stream:removing', id, stream);
-    });
-
     var localIndex = localStreams.indexOf(stream);
 
     // remove the stream from any active calls
