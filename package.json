@@ -1,6 +1,6 @@
 {
   "name": "rtc-quickconnect",
-  "version": "5.8.4",
+  "version": "5.9.0",
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
@@ -21,13 +21,13 @@
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
   "dependencies": {
-    "cog": "^1",
+    "cog": "^1.1.0",
     "mbus": "^2.0.0",
     "rtc-attach": "^2.0.1",
     "rtc-capture": "^1.0.2",
     "rtc-core": "^4.0.0",
-    "rtc-pluggable-signaller": "^2.0.0",
-    "rtc-tools": "^5.4.0"
+    "rtc-pluggable-signaller": "^2.1.0",
+    "rtc-tools": "^5.4.1"
   },
   "devDependencies": {
     "async": "^0.9",
