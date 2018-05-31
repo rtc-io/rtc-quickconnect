@@ -4,7 +4,9 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
+    "test1": "browserify test/all.js | tap-spec",
     "test": "browserify test/all.js | broth start | tap-spec",
+    "build": "browserify test/all.js > bundle.js",
     "gendocs": "gendocs > README.md"
   },
   "repository": {
@@ -32,14 +34,15 @@
   "devDependencies": {
     "async": "^0.9",
     "attachmediastream": "^1.0.1",
-    "broth": "^2.2.0",
-    "browserify": "^13.0.0",
+    "broth": "^2.3.0",
+    "browserify": "^16.2.2",
+    "bufferutil": "3.0.5",
     "crel": "^2.1.5",
     "fdom": "^1.2.0",
     "freeice": "^2.1.1",
     "getusermedia": "^1.1.0",
     "grunt": "^0.4.5",
-    "grunt-browserify": "^3.4.0",
+    "grunt-browserify": "^5.3.0",
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
     "hosted-git-info": "2.5.0",
@@ -48,10 +51,10 @@
     "rtc-filter-grayscale": "~0.1.0",
     "rtc-media": "^1",
     "rtc-plugin-temasys": "^1.1.1",
-    "rtc-quickconnect-test": "^2.3.0",
-    "rtc-switchboard": "^3.0.0",
+    "rtc-quickconnect-test": "2.3.0",
+    "rtc-switchboard": "^3.2.0",
     "rtc-videoproc": "^0.11.0",
-    "tap-spec": "^3.0.0",
+    "tap-spec": "^4.1.2",
     "travis-multirunner": "^3.0.0",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
