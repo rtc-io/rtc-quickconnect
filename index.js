@@ -243,7 +243,7 @@ module.exports = function (signalhost, opts) {
       // add the local streams/tracks
       localStreams.forEach(function (stream) {
         if (pc.addTrack){
-        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+          stream.getTracks().forEach(track => pc.addTrack(track, stream));
         }
         else {
           pc.addStream(stream);
@@ -569,12 +569,33 @@ module.exports = function (signalhost, opts) {
       if (data.pc.addTrack) {
         // Firefox + Chrome 64 and above
         stream.getTracks().forEach(function (track) {
+          debug('addTrack trackId:',track.id, ',streamId:',stream.id);
           data.pc.addTrack(track, stream);
         });
       } else {
         // Upto chrome 63
         data.pc.addStream(stream);
       }
+    });
+
+    checkReadyToAnnounce();
+    return signaller;
+  };
+
+
+  /**
+    #### addTrack
+
+    The `addTrack` function terminates do the pure WebRTC addTrack logic.
+  **/
+  signaller.addTrack = function (track, stream) {
+    if(localStreams.indexOf(stream) == -1){
+      localStreams.push(stream);
+    }
+
+    // if we have any active calls, then add the stream
+    calls.values().forEach(function (call) {
+      call.pc.addTrack(track, stream);
     });
 
     checkReadyToAnnounce();

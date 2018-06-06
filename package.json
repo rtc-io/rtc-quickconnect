@@ -4,6 +4,7 @@
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
+    "test2": "browserify entry.js > bundle.js",
     "test1": "browserify test/all.js | tap-spec",
     "test": "browserify test/all.js | broth start | tap-spec",
     "build": "browserify test/all.js > bundle.js",
@@ -40,6 +41,7 @@
     "crel": "^2.1.5",
     "fdom": "^1.2.0",
     "freeice": "^2.1.1",
+    "gendocs": "2.0.1",
     "getusermedia": "^1.1.0",
     "grunt": "^1.0.2",
     "grunt-browserify": "^5.3.0",
