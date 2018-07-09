@@ -603,6 +603,44 @@ module.exports = function (signalhost, opts) {
   };
 
   /**
+    #### replaceTrack
+
+    The `replaceTrack` function terminates do the pure WebRTC addTrack logic.
+  **/
+  signaller.replaceTrack = function (track, streamId) {
+    // find stream
+    var localStream = localStreams.find(s=>s.id === streamId);
+    if (!localStream)
+      console.error('cannot find the stream:', streamId, localStreams);
+      return;
+    }
+
+    // remove existing track
+    var removingTrack = localStream.getTracks().find(t=>t.kind === track.kind);
+    if (removeTrack){
+      localStream.removeTrack(removingTrack);
+    }
+    else{
+      console.warn('cannot find the stream:', track.kind, localStream);
+      return;
+    }
+    
+    // add new track
+    localStream.addTrack(track);
+
+    // replace pc track
+    calls.values().forEach(function(call) {
+      var sender = call.pc.getSenders().find(function(s) {
+        return s.track.id === removingTrack.id;
+        // return s.track.kind == track.kind;
+      });
+      console.log('found sender:', sender);
+      sender.replaceTrack(track);
+    });
+    return signaller;
+  }; 
+
+  /**
     #### endCall
 
     The `endCall` function terminates the active call with the given ID.
