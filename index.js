@@ -605,28 +605,35 @@ module.exports = function (signalhost, opts) {
   /**
     #### replaceTrack
 
-    The `replaceTrack` function terminates do the pure WebRTC addTrack logic.
+    The `replaceTrack` function call web WebRTC API for replaceTrack (sender)
   **/
-  signaller.replaceTrack = function (track, streamId) {
-    // find stream
-    var localStream = localStreams.find(s=>s.id === streamId);
-    if (!localStream)
-      console.error('cannot find the stream:', streamId, localStreams);
-      return;
-    }
+  signaller.replaceTrack = function (track, trackId) {
 
-    // remove existing track
-    var removingTrack = localStream.getTracks().find(t=>t.kind === track.kind);
-    if (removeTrack){
-      localStream.removeTrack(removingTrack);
+    // all tracks
+    var allTracks = [];
+    localStreams.forEach(s=>{
+      allTracks = allTracks.concat(s.getTracks());
+    });
+
+
+    // find existing track
+    var replacingStream = undefined;
+    var removingTrack = allTracks.find(t=>t.id === trackId);
+    if (removingTrack){
+      replacingStream = localStreams.find(s=>
+        s.getTracks().find(t=>t === removingTrack));
+
+      // removing 
+      replacingStream.removeTrack(removingTrack);
+
+      // add new track
+      replacingStream.addTrack(track);
     }
     else{
-      console.warn('cannot find the stream:', track.kind, localStream);
+      console.error('cannot find the stream:', trackId, track);
       return;
     }
     
-    // add new track
-    localStream.addTrack(track);
 
     // replace pc track
     calls.values().forEach(function(call) {
@@ -634,11 +641,13 @@ module.exports = function (signalhost, opts) {
         return s.track.id === removingTrack.id;
         // return s.track.kind == track.kind;
       });
+      // TODO: remove log
       console.log('found sender:', sender);
       sender.replaceTrack(track);
     });
     return signaller;
   }; 
+
 
   /**
     #### endCall
