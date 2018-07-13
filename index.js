@@ -606,6 +606,7 @@ module.exports = function (signalhost, opts) {
     #### replaceTrack
 
     The `replaceTrack` function call web WebRTC API for replaceTrack (sender)
+    replaceTrack(newTrack, oldTrackId)
   **/
   signaller.replaceTrack = function (track, trackId) {
 
@@ -617,10 +618,9 @@ module.exports = function (signalhost, opts) {
 
 
     // find existing track
-    var replacingStream = undefined;
     var removingTrack = allTracks.find(t=>t.id === trackId);
     if (removingTrack){
-      replacingStream = localStreams.find(s=>
+      var replacingStream = localStreams.find(s=>
         s.getTracks().find(t=>t === removingTrack));
 
       // removing 
@@ -630,21 +630,25 @@ module.exports = function (signalhost, opts) {
       replacingStream.addTrack(track);
     }
     else{
-      console.error('cannot find the stream:', trackId, track);
+      console.error('cannot find the track to be replaced:', trackId, track);
       return;
     }
     
 
     // replace pc track
+    var hasFound = false;
     calls.values().forEach(function(call) {
       var sender = call.pc.getSenders().find(function(s) {
         return s.track.id === removingTrack.id;
-        // return s.track.kind == track.kind;
       });
-      // TODO: remove log
-      console.log('found sender:', sender);
+      hasFound = true;
       sender.replaceTrack(track);
     });
+
+    if (!hasFound){
+      console.error('cannot find sender:', trackId, track);
+    }
+
     return signaller;
   }; 
 
