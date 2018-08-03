@@ -248,6 +248,9 @@ module.exports = function (signalhost, opts) {
         else {
           pc.addStream(stream);
         }
+
+        // Fire the couple event
+        signaller('peer:localMediaAdded', id, pc);
       });
 
       // add the data channels
