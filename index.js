@@ -250,7 +250,7 @@ module.exports = function (signalhost, opts) {
         }
 
         // Fire the couple event
-        signaller('peer:localMediaAdded', id, pc);
+        signaller('peer:localMediaAddedPC', id, pc);
       });
 
       // add the data channels
@@ -568,17 +568,23 @@ module.exports = function (signalhost, opts) {
     localStreams.push(stream);
 
     // if we have any active calls, then add the stream
-    calls.values().forEach(function (data) {
-      if (data.pc.addTrack) {
+    calls.keys().forEach(function (id) {
+      // get call obj
+      var call = calls.get(id);
+
+      // check addTrack or addStream
+      if (call.pc.addTrack) {
         // Firefox + Chrome 64 and above
         stream.getTracks().forEach(function (track) {
           debug('addTrack trackId:',track.id, ',streamId:',stream.id);
-          data.pc.addTrack(track, stream);
+          call.pc.addTrack(track, stream);
         });
       } else {
         // Upto chrome 63
-        data.pc.addStream(stream);
+        call.pc.addStream(stream);
       }
+
+      signaller('peer:localMediaAdded', id, call.pc);
     });
 
     checkReadyToAnnounce();
