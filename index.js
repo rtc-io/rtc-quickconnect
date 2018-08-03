@@ -250,7 +250,7 @@ module.exports = function (signalhost, opts) {
         }
 
         // Fire the couple event
-        signaller('peer:localMediaAddedPC', id, pc);
+        signaller('peer:localMediaAdded', id, pc, data);
       });
 
       // add the data channels
