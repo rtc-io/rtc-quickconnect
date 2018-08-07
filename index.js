@@ -645,18 +645,19 @@ module.exports = function (signalhost, opts) {
     
 
     // replace pc track
-    var hasFound = false;
     calls.values().forEach(function(call) {
       var sender = call.pc.getSenders().find(function(s) {
         return s.track.id === removingTrack.id;
       });
-      hasFound = true;
-      sender.replaceTrack(track);
-    });
 
-    if (!hasFound){
-      console.error('cannot find sender:', trackId, track);
-    }
+      if (sender){
+        // found the sender, then replace the track
+        sender.replaceTrack(track);
+      }
+      else{
+        console.error('cannot find sender:', trackId, track);
+      }
+    });
 
     return signaller;
   }; 
