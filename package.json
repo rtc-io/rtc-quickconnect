@@ -53,7 +53,7 @@
     "rtc-quickconnect-test": "2.3.1",
     "rtc-switchboard": "^3.2.0",
     "rtc-videoproc": "^0.11.0",
-    "tap-spec": "^4.1.2",
+    "tap-spec": "^3.0.0",
     "travis-multirunner": "^3.0.0",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
