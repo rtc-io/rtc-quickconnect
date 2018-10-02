@@ -16,7 +16,7 @@
     "webrtc"
   ],
   "author": "Damon Oehlman <damon.oehlman@nicta.com.au>",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/rtc-io/rtc-quickconnect/issues"
   },
@@ -55,8 +55,10 @@
     "rtc-videoproc": "^0.11.0",
     "tap-spec": "^3.0.0",
     "travis-multirunner": "^3.0.0",
-    "utf-8-validate": "5.0.1",
     "uuid": "^2.0.1",
     "whisk": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "utf-8-validate": "5.0.1"
   }
 }
