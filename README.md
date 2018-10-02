@@ -289,11 +289,30 @@ addStream(stream:MediaStream) => qc
 Add the stream to active calls and also save the stream so that it
 can be added to future calls.
 
+
+#### addTrack
+
+The `addTrack` function terminates do the pure WebRTC addTrack logic.
+
+
+#### replaceTrack
+
+The `replaceTrack` function call web WebRTC API for replaceTrack (sender)
+replaceTrack(newTrack, oldTrackId)
+
+
+#### endCall
+
+The `endCall` function terminates the active call with the given ID.
+If a call with the call ID does not exist it will do nothing.
+
+
 #### endCalls()
 
 The `endCalls` function terminates all the active calls that have been
 created in this quickconnect instance.  Calling `endCalls` does not
 kill the connection with the signalling server.
+
 
 #### close()
 

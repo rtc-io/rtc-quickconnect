@@ -240,9 +240,17 @@ module.exports = function (signalhost, opts) {
       // add this connection to the calls list
       call = calls.create(id, pc, data);
 
-      // add the local streams
+      // add the local streams/tracks
       localStreams.forEach(function (stream) {
-        pc.addStream(stream);
+        if (pc.addTrack){
+          stream.getTracks().forEach(track => pc.addTrack(track, stream));
+        }
+        else {
+          pc.addStream(stream);
+        }
+
+        // Fire the couple event
+        signaller('peer:localMediaAdded', id, pc, data);
       });
 
       // add the data channels
@@ -560,21 +568,100 @@ module.exports = function (signalhost, opts) {
     localStreams.push(stream);
 
     // if we have any active calls, then add the stream
-    calls.values().forEach(function (data) {
-      if (data.pc.addTrack) {
+    calls.keys().forEach(function (id) {
+      // get call obj
+      var call = calls.get(id);
+
+      // check addTrack or addStream
+      if (call.pc.addTrack) {
         // Firefox + Chrome 64 and above
         stream.getTracks().forEach(function (track) {
-          data.pc.addTrack(track, stream);
+          debug('addTrack trackId:',track.id, ',streamId:',stream.id);
+          call.pc.addTrack(track, stream);
         });
       } else {
         // Upto chrome 63
-        data.pc.addStream(stream);
+        call.pc.addStream(stream);
       }
+
+      signaller('peer:localMediaAdded', id, call.pc);
     });
 
     checkReadyToAnnounce();
     return signaller;
   };
+
+
+  /**
+    #### addTrack
+
+    The `addTrack` function terminates do the pure WebRTC addTrack logic.
+  **/
+  signaller.addTrack = function (track, stream) {
+    if(localStreams.indexOf(stream) == -1){
+      localStreams.push(stream);
+    }
+
+    // if we have any active calls, then add the stream
+    calls.values().forEach(function (call) {
+      call.pc.addTrack(track, stream);
+    });
+
+    checkReadyToAnnounce();
+    return signaller;
+  };
+
+  /**
+    #### replaceTrack
+
+    The `replaceTrack` function call web WebRTC API for replaceTrack (sender)
+    replaceTrack(newTrack, oldTrackId)
+  **/
+  signaller.replaceTrack = function (track, trackId) {
+
+    // all tracks
+    var allTracks = [];
+    localStreams.forEach(s=>{
+      allTracks = allTracks.concat(s.getTracks());
+    });
+
+
+    // find existing track
+    var removingTrack = allTracks.find(t=>t.id === trackId);
+    if (removingTrack){
+      var replacingStream = localStreams.find(s=>
+        s.getTracks().find(t=>t === removingTrack));
+
+      // removing 
+      replacingStream.removeTrack(removingTrack);
+
+      // add new track
+      replacingStream.addTrack(track);
+    }
+    else{
+      console.error('cannot find the track to be replaced:', trackId, track);
+      return;
+    }
+    
+
+    // replace pc track
+    calls.values().forEach(function(call) {
+      var sender = call.pc.getSenders().find(function(s) {
+        return s.track.id === removingTrack.id;
+      });
+
+      if (sender){
+        // found the sender, then replace the track
+        sender.replaceTrack(track);
+      }
+      else{
+        console.error('cannot find sender:', trackId, track);
+      }
+    });
+
+    return signaller;
+  }; 
+
 
   /**
     #### endCall
@@ -729,6 +816,7 @@ module.exports = function (signalhost, opts) {
 
   **/
   signaller.removeStream = function (stream) {
+
     var localIndex = localStreams.indexOf(stream);
 
     // remove the stream from any active calls
