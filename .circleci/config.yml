@@ -5,9 +5,6 @@ jobs:
       - image: circleci/node:6.14.4
     steps:
       - checkout
-      - run:
-          name: update-npm
-          command: 'sudo npm install npm@latest -g'
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
