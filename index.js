@@ -7,7 +7,7 @@ var mbus = require('mbus');
 var detectPlugin = require('rtc-core/plugin');
 var debug = rtc.logger('rtc-quickconnect');
 var extend = require('cog/extend');
-var sdpSupport = require('./lib/sdpSupport');
+var sdpSupport = require('./lib/sdpsupport');
 
 /**
   # rtc-quickconnect
