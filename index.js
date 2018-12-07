@@ -7,6 +7,7 @@ var mbus = require('mbus');
 var detectPlugin = require('rtc-core/plugin');
 var debug = rtc.logger('rtc-quickconnect');
 var extend = require('cog/extend');
+var sdpSupport = require('./lib/sdpsupport');
 
 /**
   # rtc-quickconnect
@@ -228,17 +229,19 @@ module.exports = function (signalhost, opts) {
         signaller('peer:iceservers', id, scheme && scheme.id, iceServers || []);
       }
 
+      // Generate the connection options for the provided options and default values
+      var connectionOptions = extend({
+        sdpSemantics: sdpSupport.detectTargetSemantics(signaller, data)
+      }, opts, { iceServers: iceServers });
+
       // create a peer connection
       // iceServers that have been created using genice taking precendence
-      pc = rtc.createConnection(
-        extend({}, opts, { iceServers: iceServers }),
-        (opts || {}).constraints
-      );
+      pc = rtc.createConnection(connectionOptions, (opts || {}).constraints);
 
       signaller('peer:connect', id, pc, data);
 
       // add this connection to the calls list
-      call = calls.create(id, pc, data);
+      call = calls.create(id, pc, data, connectionOptions);
 
       // add the local streams/tracks
       localStreams.forEach(function (stream) {

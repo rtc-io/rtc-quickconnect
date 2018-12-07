@@ -33,7 +33,7 @@ after_failure:
 
 notifications:
   email:
-  - nathan.oehlman@nicta.com.au
+  - nathan+rtcio@coviu.com
 
 addons:
   apt:
