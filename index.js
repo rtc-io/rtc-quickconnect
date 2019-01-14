@@ -204,6 +204,13 @@ module.exports = function (signalhost, opts) {
     if (data.id !== id) {
       return debug('mismatching ids, expected: ' + id + ', got: ' + data.id);
     }
+
+    // Allow prevention of connections if required
+    if (scheme && typeof scheme.allowConnection === 'function' && !scheme.allowConnection(id, data)) {
+      signaller('peer:rejected', id, data, scheme);
+      return debug('peer connection was rejected for ' + id);
+    }
+
     pending[id] = Date.now();
 
     // end any call to this id so we know we are starting fresh
