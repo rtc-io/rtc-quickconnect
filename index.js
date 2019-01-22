@@ -263,31 +263,24 @@ module.exports = function (signalhost, opts) {
         signaller('peer:localMediaAdded', id, pc, data);
       });
 
-      // add the data channels
-      // do this differently based on whether the connection is a
-      // master or a slave connection
-      if (signaller.isMaster(id)) {
-        debug('is master, creating data channels: ', Object.keys(channels));
+      // add any necessary data channels
+      Object.keys(channels).forEach(function (label) {
+        addDataChannelToConnection(pc, id, label);
+      });
+      
+      // Watch for any datachannel creation from in-band negotiated channels
+      pc.ondatachannel = function (evt) {
+        var channel = evt && evt.channel;
 
-        // create the channels
-        Object.keys(channels).forEach(function (label) {
-          gotPeerChannel(pc.createDataChannel(label, channels[label]), pc, data);
-        });
-      }
-      else {
-        pc.ondatachannel = function (evt) {
-          var channel = evt && evt.channel;
+        // if we have no channel, abort
+        if (!channel) {
+          return;
+        }
 
-          // if we have no channel, abort
-          if (!channel) {
-            return;
-          }
-
-          if (channels[channel.label] !== undefined) {
-            gotPeerChannel(channel, pc, getPeerData(id));
-          }
-        };
-      }
+        if (channels[channel.label] !== undefined) {
+          gotPeerChannel(channel, pc, getPeerData(id));
+        }
+      };
 
       // couple the connections
       debug('coupling ' + signaller.id + ' to ' + id);
@@ -341,6 +334,30 @@ module.exports = function (signalhost, opts) {
     }
 
     return call;
+  }
+
+  /**
+    Adds a data channel to a peer connection, if required.
+    The channel will be added to the connection under the following situations:
+    1. This is the master peer in the connection to `targetPeer`
+    2. `opts.negotiated` is true
+   */
+  function addDataChannelToConnection(pc, targetPeer, label) {
+    if (!pc || !targetPeer || !label) return;
+    var channelId = Object.keys(channels).indexOf(label);
+    if (channelId === -1) return console.warn('Channel ID not found');    
+    var channelOpts = channels[label] || {};
+    var negotiated = !!channelOpts.negotiated;
+    // If negotiated, allow auto generation of the channel ID
+    if (negotiated) {
+      channelOpts = extend({ id: channelId }, channelOpts);
+    }
+    
+    // If not negotiated, we have to be the master in order to create
+    if (!negotiated && !signaller.isMaster(targetPeer)) return;
+
+    var data = getPeerData(targetPeer);
+    gotPeerChannel(pc.createDataChannel(label, channelOpts), pc, data);
   }
 
   function gotPeerChannel(channel, pc, data) {
@@ -732,24 +749,24 @@ module.exports = function (signalhost, opts) {
 
   **/
   signaller.createDataChannel = function (label, opts) {
+    // save the data channel opts in the local channels dictionary
+    channels[label] = opts || null;
+
     // create a channel on all existing calls
     calls.keys().forEach(function (peerId) {
       var call = calls.get(peerId);
       var dc;
 
       // if we are the master connection, create the data channel
-      if (call && call.pc && signaller.isMaster(peerId)) {
+      if (call && call.pc) {
         var existingChannel = call.channels.get(label);
         if (existingChannel && existingChannel.readyState !== 'closed') {
           return debug('Attempted to create data channel "' + label + '" for a call to ' + peerId + ' but an open channel already exists');
         }
-        dc = call.pc.createDataChannel(label, opts);
-        gotPeerChannel(dc, call.pc, getPeerData(peerId));
+        // Add the datachannel (if required)
+        addDataChannelToConnection(call.pc, peerId, label);
       }
-    });
-
-    // save the data channel opts in the local channels dictionary
-    channels[label] = opts || null;
+    });    
 
     return signaller;
   };
