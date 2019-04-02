@@ -601,10 +601,14 @@ module.exports = function (signalhost, opts) {
 
       // check addTrack or addStream
       if (call.pc.addTrack) {
+
+        let newStream = new MediaStream();
+
         // Firefox + Chrome 64 and above
         stream.getTracks().forEach(function (track) {
           debug('addTrack trackId:',track.id, ',streamId:',stream.id);
-          call.pc.addTrack(track, stream);
+          debug('addTrack track:',track.id, track.kind, ',streamIds:', stream.id, newStream.id);
+          call.pc.addTrack(track, stream, newStream);
         });
       } else {
         // Upto chrome 63
