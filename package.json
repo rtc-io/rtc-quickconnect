@@ -24,7 +24,7 @@
     "cog": "^1.1.0",
     "compare-versions": "^3.4.0",
     "mbus": "^2.0.0",
-    "rtc-attach": "^2.0.1",
+    "rtc-attach": "^2.1.0",
     "rtc-capture": "^1.0.2",
     "rtc-core": "^4.0.0",
     "rtc-pluggable-signaller": "^2.1.0",
