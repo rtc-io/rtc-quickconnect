@@ -608,7 +608,7 @@ module.exports = function (signalhost, opts) {
         // Firefox + Chrome 64 and above
         stream.getAudioTracks().concat(stream.getVideoTracks()).forEach(function (track) {
           debug('addTrack trackId:',track.id, ',streamId:',stream.id);
-          console.warn('addTrack track:',track.id, track.kind, ',streamIds:', stream.id, newStream.id);
+          console.log('addTrack track:',track.id, track.kind, ',streamIds:', stream.id, newStream.id);
           call.pc.addTrack(track, stream, newStream);
         });
       } else {
