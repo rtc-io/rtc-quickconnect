@@ -357,7 +357,13 @@ module.exports = function (signalhost, opts) {
     if (!negotiated && !signaller.isMaster(targetPeer)) return;
 
     var data = getPeerData(targetPeer);
-    gotPeerChannel(pc.createDataChannel(label, channelOpts), pc, data);
+    try {
+      debug('Creating data channel', label, channelOpts, pc);
+      var channel = pc.createDataChannel(label, channelOpts);
+      gotPeerChannel(channel, pc, data);
+    } catch (err) {
+      console.error('Failed to create data channel', label, err);
+    }
   }
 
   function gotPeerChannel(channel, pc, data) {
@@ -415,13 +421,19 @@ module.exports = function (signalhost, opts) {
       clearInterval(channelMonitor);
       clearTimeout(channelConnectionTimer);
 
-      // Force the channel to close if it is in an open state
-      if (['connecting', 'open'].indexOf(channel.readyState) !== -1) {
-        channel.close();
+      function recreate() {
+        debug('recreating channel', channel.label);
+        // Recreate the channel using the cached options
+        signaller.createDataChannel(channel.label, channels[channel.label])
       }
 
-      // Recreate the channel using the cached options
-      signaller.createDataChannel(channel.label, channels[channel.label])
+      // Force the channel to close if it is in an open state
+      if (['connecting', 'open'].indexOf(channel.readyState) !== -1) {
+        channel.addEventListener('close', recreate);
+        channel.close();
+      } else {
+        recreate()
+      }
     }
 
     debug('channel ' + channel.label + ' discovered for peer: ' + data.id);
