@@ -253,7 +253,8 @@ module.exports = function (signalhost, opts) {
       // add the local streams/tracks
       localStreams.forEach(function (stream) {
         if (pc.addTrack){
-          stream.getTracks().forEach(track => pc.addTrack(track, stream));
+          stream.getAudioTracks().concat(stream.getVideoTracks()).forEach(
+            track => pc.addTrack(track, stream));
         }
         else {
           pc.addStream(stream);
@@ -601,8 +602,9 @@ module.exports = function (signalhost, opts) {
 
       // check addTrack or addStream
       if (call.pc.addTrack) {
+
         // Firefox + Chrome 64 and above
-        stream.getTracks().forEach(function (track) {
+        stream.getAudioTracks().concat(stream.getVideoTracks()).forEach(function (track) {
           debug('addTrack trackId:',track.id, ',streamId:',stream.id);
           call.pc.addTrack(track, stream);
         });
