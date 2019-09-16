@@ -150,7 +150,7 @@ module.exports = function (signalhost, opts) {
   var expectedLocalStreams = parseInt((opts || {}).expectedLocalStreams, 10) || 0;
   var announceTimer = 0;
   var updateTimer = 0;
-  var CLOSED_STATES = ['failed', 'closed'];
+  var CLOSED_STATES = ['failed', 'closed', 'disconnect'];
 
   function checkReadyToAnnounce() {
     clearTimeout(announceTimer);
