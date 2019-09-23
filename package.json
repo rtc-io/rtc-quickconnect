@@ -1,6 +1,6 @@
 {
   "name": "rtc-quickconnect",
-  "version": "7.5.0",
+  "version": "7.6.0",
   "description": "Create a WebRTC connection in record time",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "mbus": "^2.0.0",
     "rtc-attach": "^2.1.0",
     "rtc-capture": "^1.0.2",
-    "rtc-core": "^4.0.0",
+    "rtc-core": "^4.1.0",
     "rtc-pluggable-signaller": "^2.1.0",
     "rtc-tools": "^5.5.0"
   },
