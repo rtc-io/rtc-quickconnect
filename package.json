@@ -28,7 +28,8 @@
     "rtc-capture": "^1.0.2",
     "rtc-core": "^4.0.0",
     "rtc-pluggable-signaller": "^2.1.0",
-    "rtc-tools": "^5.5.0"
+    "rtc-tools": "^5.5.0",
+    "rtc-validator": "git+https://github.com/buddhikajay/rtc-validator.git"
   },
   "devDependencies": {
     "async": "^0.9",
