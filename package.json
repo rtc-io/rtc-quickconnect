@@ -29,7 +29,7 @@
     "rtc-core": "^4.0.0",
     "rtc-pluggable-signaller": "^2.1.0",
     "rtc-tools": "^5.5.0",
-    "rtc-validator": "git+https://github.com/buddhikajay/rtc-validator.git"
+    "rtc-validator": "~1.2.3"
   },
   "devDependencies": {
     "async": "^0.9",
