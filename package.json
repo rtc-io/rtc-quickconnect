@@ -46,7 +46,7 @@
     "grunt-browserify": "^5.3.0",
     "grunt-contrib-uglify": "^3.3.0",
     "grunt-contrib-watch": "^1.1.0",
-    "hosted-git-info": "2.5.0",
+    "hosted-git-info": "2.8.9",
     "rtc-bufferedchannel": "^0.5.0",
     "rtc-captureconfig": "^2.1.0",
     "rtc-filter-grayscale": "~0.1.0",
